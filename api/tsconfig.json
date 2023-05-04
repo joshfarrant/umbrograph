@@ -8,6 +8,8 @@
     "moduleResolution": "node",
     "skipLibCheck": false,
     "baseUrl": "./",
+    "strict": true,
+    "noImplicitAny": true,
     "rootDirs": [
       "./src",
       "../.redwood/types/mirror/api/src"

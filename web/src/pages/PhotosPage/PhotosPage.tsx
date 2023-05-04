@@ -9,6 +9,7 @@ import {
 } from 'src/utils/crypto';
 import { JsonDownloadLink } from 'src/components/atoms/json-download-link';
 import { useSecrets } from 'src/contexts/secrets';
+import { FileUpload } from 'src/components/atoms/file-upload';
 
 const PhotosPage = () => {
   const { key, iv, stringifiedSecrets, generateSecrets, setKey, setIv } =
@@ -20,23 +21,13 @@ const PhotosPage = () => {
   const uploadImageRef = useRef<HTMLInputElement>(null);
   const uploadSecretRef = useRef<HTMLInputElement>(null);
 
-  const onFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { files } = e.target;
-
-    invariant(files);
-
-    const selectedFile = files[0];
-
-    if (!selectedFile) {
-      return;
-    }
-
-    const { encryptedFile } = await encryptFileContents(key, iv, selectedFile);
+  const onFileUpload = async (file: File) => {
+    const { encryptedFile } = await encryptFileContents(key, iv, file);
 
     setEncryptedFile(encryptedFile);
 
     const reader = new FileReader();
-    reader.readAsDataURL(selectedFile);
+    reader.readAsDataURL(file);
     reader.addEventListener('load', () => {
       invariant(typeof reader.result === 'string');
 
@@ -48,22 +39,13 @@ const PhotosPage = () => {
     });
   };
 
-  const onSecretsUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { files } = e.target;
-
-    invariant(files);
-
-    const secretsFile = files[0];
-
-    if (!secretsFile) {
-      return;
-    }
-
+  const onSecretsUpload = async (file: File) => {
     const reader = new FileReader();
-    reader.readAsText(secretsFile);
+    reader.readAsText(file);
 
-    reader.onload = async () => {
-      const fileContents = reader.result as string;
+    reader.addEventListener('load', async () => {
+      const fileContents = reader.result;
+      invariant(typeof fileContents === 'string');
       const jsonData = JSON.parse(fileContents);
 
       const secrets = await importSecrets(jsonData);
@@ -74,7 +56,7 @@ const PhotosPage = () => {
       if (uploadSecretRef.current) {
         uploadSecretRef.current.value = '';
       }
-    };
+    });
   };
 
   const onDecryptClick = async () => {
@@ -90,26 +72,18 @@ const PhotosPage = () => {
         <div className="mx-auto mt-12 max-w-3xl space-y-12">
           <section className="space-y-6">
             <h2 className="text-xl">Generated secrets</h2>
-            <pre className="rounded-md bg-gray-100 p-2">
+            <pre className="rounded-md bg-gray-100 p-2 text-sm">
               {stringifiedSecrets}
             </pre>
             <div className="space-x-2">
-              <label
-                className="inline-block rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                htmlFor="secrets-input"
-              >
-                Upload secrets
-              </label>
-
-              <input
-                ref={uploadSecretRef}
-                type="file"
+              <FileUpload
                 id="secrets-input"
                 name="secrets"
                 accept="application/json"
-                className="hidden"
-                onChange={onSecretsUpload}
-              />
+                onUpload={onSecretsUpload}
+              >
+                Upload secrets
+              </FileUpload>
 
               <button
                 className="rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
@@ -128,29 +102,16 @@ const PhotosPage = () => {
             </div>
           </section>
 
-          <form
-            className="border-t border-gray-900/10 pt-12"
-            onSubmit={(e) => {
-              e.preventDefault();
-              console.log(e);
-            }}
-          >
-            <label
-              htmlFor="image-input"
-              className="inline-block rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-            >
-              Upload an image
-            </label>
-            <input
-              ref={uploadImageRef}
-              type="file"
+          <div className="border-t border-gray-900/10 pt-12">
+            <FileUpload
               id="image-input"
               name="image"
               accept="image/*"
-              className="hidden"
-              onChange={onFileUpload}
-            />
-          </form>
+              onUpload={onFileUpload}
+            >
+              Upload an image
+            </FileUpload>
+          </div>
 
           <section className="flex flex-row border-t border-gray-900/10 pt-12">
             <div className="flex-1">

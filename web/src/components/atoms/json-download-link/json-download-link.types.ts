@@ -1,6 +1,6 @@
-import { HTMLAttributes } from 'react';
+import { AnchorHTMLAttributes } from 'react';
 
-export type JsonDownloadLinkProps = HTMLAttributes<HTMLAnchorElement> & {
+export type JsonDownloadLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
   json: string;
   filename: string;
 };

@@ -1,8 +1,9 @@
 import { v4 as uuid } from 'uuid';
 
 import { Secret } from 'src/types/secret';
+import invariant from 'tiny-invariant';
 
-const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
   let binary = '';
   const bytes = new Uint8Array(buffer);
   const len = bytes.byteLength;
@@ -12,7 +13,7 @@ const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
   return window.btoa(binary);
 };
 
-const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
+export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
   const binaryString = Buffer.from(base64, 'base64');
   const bytes = new Uint8Array(binaryString.length);
 
@@ -23,14 +24,42 @@ const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
   return bytes.buffer;
 };
 
+const fileToPreviewUrl = (file: File): Promise<string> => {
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+
+  return new Promise((resolve) => {
+    reader.addEventListener('load', () => {
+      invariant(typeof reader.result === 'string');
+
+      resolve(reader.result);
+    });
+  });
+};
+
+export const base64ToPreviewUrl = async (
+  key: CryptoKey,
+  iv: Uint8Array,
+  fileType: string,
+  base64: string
+): Promise<string> => {
+  const arrayBuffer = base64ToArrayBuffer(base64);
+
+  const file = await decryptFileContents(key, iv, arrayBuffer, fileType);
+
+  const previewUrl = fileToPreviewUrl(file);
+
+  return previewUrl;
+};
+
 export const encryptFileContents = async (
   key: CryptoKey,
   iv: Uint8Array,
   file: File
-): Promise<{ encryptedFile: Blob; iv: Uint8Array }> => {
+): Promise<{ arrayBuffer: ArrayBuffer; iv: Uint8Array }> => {
   const fileContents = await file.arrayBuffer();
 
-  const encryptedContents = await window.crypto.subtle.encrypt(
+  const arrayBuffer = await window.crypto.subtle.encrypt(
     {
       name: 'AES-GCM',
       iv: iv,
@@ -39,17 +68,16 @@ export const encryptFileContents = async (
     fileContents
   );
 
-  const encryptedFile = new Blob([encryptedContents], { type: file.type });
-  return { encryptedFile, iv };
+  return { arrayBuffer, iv };
 };
 
 export const decryptFileContents = async (
   key: CryptoKey,
   iv: Uint8Array,
-  encryptedFile: Blob,
+  encryptedContents: ArrayBuffer,
+  fileType: string,
   fileName: string = uuid()
 ): Promise<File> => {
-  const encryptedContents = await encryptedFile.arrayBuffer();
   const decryptedContents = await window.crypto.subtle.decrypt(
     {
       name: 'AES-GCM',
@@ -60,7 +88,7 @@ export const decryptFileContents = async (
   );
 
   const decryptedFile = new File([decryptedContents], fileName, {
-    type: encryptedFile.type,
+    type: fileType,
   });
 
   return decryptedFile;

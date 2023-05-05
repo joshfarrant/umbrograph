@@ -1,28 +1,55 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import invariant from 'tiny-invariant';
-
 import { MetaTags } from '@redwoodjs/web';
+import { useMutation } from '@redwoodjs/web';
+import { toast } from '@redwoodjs/web/toast';
+
 import {
+  arrayBufferToBase64,
   decryptFileContents,
   encryptFileContents,
-  importSecrets,
 } from 'src/utils/crypto';
-import { JsonDownloadLink } from 'src/components/atoms/json-download-link';
 import { useSecrets } from 'src/contexts/secrets';
 import { FileUpload } from 'src/components/atoms/file-upload';
+import type { CreateFileInput } from 'types/graphql';
+import { Secrets } from 'src/components/atoms/secrets';
+
+const CREATE_FILE_MUTATION = gql`
+  mutation CreateFileMutation($input: CreateFileInput!) {
+    createFile(input: $input) {
+      id
+    }
+  }
+`;
 
 const PhotosPage = () => {
-  const { key, iv, stringifiedSecrets, generateSecrets, setKey, setIv } =
-    useSecrets();
+  const { key, iv } = useSecrets();
 
   const [encryptedFile, setEncryptedFile] = useState<Blob | null>(null);
+  const [encryptedFileType, setEncryptedFileTYpe] = useState<string | null>(
+    null
+  );
+  const [encryptedArrayBuffer, setEncryptedArrayBuffer] =
+    useState<ArrayBuffer | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [decryptedFileUrl, setDecryptedFileUrl] = useState<string | null>(null);
-  const uploadImageRef = useRef<HTMLInputElement>(null);
-  const uploadSecretRef = useRef<HTMLInputElement>(null);
+
+  const [createFile, { loading, error }] = useMutation(CREATE_FILE_MUTATION, {
+    onCompleted: () => {
+      toast.success('File created');
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   const onFileUpload = async (file: File) => {
-    const { encryptedFile } = await encryptFileContents(key, iv, file);
+    const { arrayBuffer } = await encryptFileContents(key, iv, file);
+    setEncryptedArrayBuffer(arrayBuffer);
+
+    setEncryptedFileTYpe(file.type);
+
+    const encryptedFile = new Blob([arrayBuffer], { type: file.type });
 
     setEncryptedFile(encryptedFile);
 
@@ -32,37 +59,35 @@ const PhotosPage = () => {
       invariant(typeof reader.result === 'string');
 
       setPreviewUrl(reader.result);
-
-      if (uploadImageRef.current) {
-        uploadImageRef.current.value = '';
-      }
-    });
-  };
-
-  const onSecretsUpload = async (file: File) => {
-    const reader = new FileReader();
-    reader.readAsText(file);
-
-    reader.addEventListener('load', async () => {
-      const fileContents = reader.result;
-      invariant(typeof fileContents === 'string');
-      const jsonData = JSON.parse(fileContents);
-
-      const secrets = await importSecrets(jsonData);
-      const { key, iv } = secrets;
-      setKey(key);
-      setIv(iv);
-
-      if (uploadSecretRef.current) {
-        uploadSecretRef.current.value = '';
-      }
     });
   };
 
   const onDecryptClick = async () => {
-    invariant(encryptedFile);
-    const contents = await decryptFileContents(key, iv, encryptedFile);
+    invariant(encryptedArrayBuffer);
+    invariant(encryptedFileType);
+
+    const contents = await decryptFileContents(
+      key,
+      iv,
+      encryptedArrayBuffer,
+      encryptedFileType
+    );
     setDecryptedFileUrl(URL.createObjectURL(contents));
+  };
+
+  const saveFile = () => {
+    invariant(encryptedArrayBuffer);
+    invariant(encryptedFileType);
+
+    const base64 = arrayBufferToBase64(encryptedArrayBuffer);
+
+    const input: CreateFileInput = {
+      owner: 'josh',
+      type: encryptedFileType,
+      data: base64,
+    };
+
+    createFile({ variables: { input } });
   };
 
   return (
@@ -70,39 +95,8 @@ const PhotosPage = () => {
       <MetaTags title="Photos" description="Photos page" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mt-12 max-w-3xl space-y-12">
-          <section className="space-y-6">
-            <h2 className="text-xl">Generated secrets</h2>
-            <pre className="rounded-md bg-gray-100 p-2 text-sm">
-              {stringifiedSecrets}
-            </pre>
-            <div className="space-x-2">
-              <FileUpload
-                id="secrets-input"
-                name="secrets"
-                accept="application/json"
-                onUpload={onSecretsUpload}
-              >
-                Upload secrets
-              </FileUpload>
-
-              <button
-                className="rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                onClick={() => generateSecrets()}
-              >
-                Regenerate secrets
-              </button>
-              {stringifiedSecrets ? (
-                <JsonDownloadLink
-                  json={stringifiedSecrets}
-                  filename="secrets.json"
-                >
-                  Download secrets
-                </JsonDownloadLink>
-              ) : null}
-            </div>
-          </section>
-
-          <div className="border-t border-gray-900/10 pt-12">
+          <Secrets />
+          <div className="space-x-2 border-t border-gray-900/10 pt-12">
             <FileUpload
               id="image-input"
               name="image"
@@ -111,6 +105,14 @@ const PhotosPage = () => {
             >
               Upload an image
             </FileUpload>
+            {previewUrl ? (
+              <button
+                className="rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                onClick={() => saveFile()}
+              >
+                Save to API
+              </button>
+            ) : null}
           </div>
 
           <section className="flex flex-row border-t border-gray-900/10 pt-12">

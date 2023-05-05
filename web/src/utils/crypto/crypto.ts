@@ -1,6 +1,27 @@
 import { v4 as uuid } from 'uuid';
 
-import { Secret, TSecret } from 'src/types/secret';
+import { Secret } from 'src/types/secret';
+
+const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return window.btoa(binary);
+};
+
+const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
+  const binaryString = Buffer.from(base64, 'base64');
+  const bytes = new Uint8Array(binaryString.length);
+
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString[i];
+  }
+
+  return bytes.buffer;
+};
 
 export const encryptFileContents = async (
   key: CryptoKey,
@@ -17,6 +38,7 @@ export const encryptFileContents = async (
     key,
     fileContents
   );
+
   const encryptedFile = new Blob([encryptedContents], { type: file.type });
   return { encryptedFile, iv };
 };

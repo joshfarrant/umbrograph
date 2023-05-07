@@ -5,6 +5,7 @@ import { useSecrets } from 'src/contexts/secrets';
 import { importSecrets } from 'src/utils/crypto';
 import { FileUpload } from '../file-upload';
 import { TSecretsProps } from './secrets.types';
+import { cryptoTest } from 'src/utils/crypto-v2';
 
 export const Secrets = ({ className, ...sectionProps }: TSecretsProps) => {
   const { stringifiedSecrets, generateSecrets, setKey, setIv } = useSecrets();
@@ -42,6 +43,13 @@ export const Secrets = ({ className, ...sectionProps }: TSecretsProps) => {
         >
           Upload secrets
         </FileUpload>
+
+        <button
+          className="rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          onClick={() => cryptoTest()}
+        >
+          Crypto v2 Test
+        </button>
 
         <button
           className="rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"

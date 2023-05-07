@@ -7,13 +7,17 @@
 // 'src/pages/HomePage/HomePage.js'         -> HomePage
 // 'src/pages/Admin/BooksPage/BooksPage.js' -> AdminBooksPage
 
-import { Set, Router, Route } from '@redwoodjs/router'
+import { Set, Router, Route } from '@redwoodjs/router';
 
 import ScaffoldLayout from 'src/layouts/ScaffoldLayout';
+import { AppLayout } from './layouts/AppLayout';
 
 const Routes = () => {
   return (
     <Router>
+      <Set wrap={AppLayout}>
+        <Route path="/upload" page={UploadPage} name="upload" />
+      </Set>
       <Set wrap={ScaffoldLayout} title="Files" titleTo="files" buttonLabel="New File" buttonTo="newFile">
         <Route path="/files/new" page={FileNewFilePage} name="newFile" />
         <Route path="/files/{id}/edit" page={FileEditFilePage} name="editFile" />

@@ -9,7 +9,9 @@ import { TSecretsProps } from './secrets.types';
 export const Secrets = ({ className, ...sectionProps }: TSecretsProps) => {
   const { stringifiedSecrets, generateSecrets, setKey, setIv } = useSecrets();
 
-  const onSecretsUpload = async (file: File) => {
+  const onSecretsUpload = async (files: FileList) => {
+    const file = files[0];
+
     const reader = new FileReader();
     reader.readAsText(file);
 

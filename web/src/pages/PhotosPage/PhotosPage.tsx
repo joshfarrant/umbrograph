@@ -25,8 +25,7 @@ const CREATE_FILE_MUTATION = gql`
 const PhotosPage = () => {
   const { key, iv } = useSecrets();
 
-  const [encryptedFile, setEncryptedFile] = useState<Blob | null>(null);
-  const [encryptedFileType, setEncryptedFileTYpe] = useState<string | null>(
+  const [encryptedFileType, setEncryptedFileType] = useState<string | null>(
     null
   );
   const [encryptedArrayBuffer, setEncryptedArrayBuffer] =
@@ -43,15 +42,13 @@ const PhotosPage = () => {
     },
   });
 
-  const onFileUpload = async (file: File) => {
-    const { arrayBuffer } = await encryptFileContents(key, iv, file);
+  const onFileUpload = async (files: FileList) => {
+    const file = files[0];
+
+    const arrayBuffer = await encryptFileContents(key, iv, file);
     setEncryptedArrayBuffer(arrayBuffer);
 
-    setEncryptedFileTYpe(file.type);
-
-    const encryptedFile = new Blob([arrayBuffer], { type: file.type });
-
-    setEncryptedFile(encryptedFile);
+    setEncryptedFileType(file.type);
 
     const reader = new FileReader();
     reader.readAsDataURL(file);

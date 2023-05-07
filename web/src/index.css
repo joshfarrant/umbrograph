@@ -12,4 +12,9 @@
  * END --- SETUP TAILWINDCSS EDIT
  */
 
- @import './scaffold.css';
+@import './scaffold.css';
+
+
+html, body, #redwood-app {
+  min-height: 100vh;
+}

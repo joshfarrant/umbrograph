@@ -10,6 +10,7 @@ export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
   for (let i = 0; i < len; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
+  // TODO don't use btoa
   return window.btoa(binary);
 };
 
@@ -24,7 +25,7 @@ export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
   return bytes.buffer;
 };
 
-const fileToPreviewUrl = (file: File): Promise<string> => {
+export const fileToPreviewUrl = (file: File): Promise<string> => {
   const reader = new FileReader();
   reader.readAsDataURL(file);
 
@@ -56,7 +57,7 @@ export const encryptFileContents = async (
   key: CryptoKey,
   iv: Uint8Array,
   file: File
-): Promise<{ arrayBuffer: ArrayBuffer; iv: Uint8Array }> => {
+): Promise<ArrayBuffer> => {
   const fileContents = await file.arrayBuffer();
 
   const arrayBuffer = await window.crypto.subtle.encrypt(
@@ -68,7 +69,7 @@ export const encryptFileContents = async (
     fileContents
   );
 
-  return { arrayBuffer, iv };
+  return arrayBuffer;
 };
 
 export const decryptFileContents = async (

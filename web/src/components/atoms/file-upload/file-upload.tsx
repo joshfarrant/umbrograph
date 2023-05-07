@@ -14,7 +14,7 @@ export const FileUpload = ({
     <>
       <label
         className={clsx(
-          'inline-block rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600',
+          'inline-block cursor-pointer rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600',
           className
         )}
         htmlFor={id}
@@ -26,18 +26,13 @@ export const FileUpload = ({
         type="file"
         id={id}
         className="hidden"
+        multiple
         onChange={(e) => {
           const { files } = e.target;
 
           invariant(files);
 
-          const file = files[0];
-
-          if (!file) {
-            return;
-          }
-
-          onUpload(file);
+          onUpload(files);
 
           e.target.value = '';
         }}

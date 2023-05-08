@@ -4,12 +4,12 @@ import { MetaTags } from '@redwoodjs/web';
 import { useMutation } from '@redwoodjs/web';
 import { toast } from '@redwoodjs/web/toast';
 
-import { arrayBufferToBase64, decryptFileContents } from 'src/utils/crypto';
+import { arrayBufferToBase64, arrayBufferToFile } from 'src/utils/codec';
 import { useIdentity } from 'src/contexts/identity';
 import { FileUpload } from 'src/components/atoms/file-upload';
 import type { CreateFileInput } from 'types/graphql';
-import { decryptData, encryptData } from 'src/utils/crypto-v2';
-import { arrayBufferToFile } from 'src/utils/codec';
+import { Secrets } from 'src/components/atoms/secrets';
+import { decryptData, encryptData } from 'src/utils/crypto-v3';
 
 const CREATE_FILE_MUTATION = gql`
   mutation CreateFileMutation($input: CreateFileInput!) {
@@ -20,7 +20,7 @@ const CREATE_FILE_MUTATION = gql`
 `;
 
 const PhotosPage = () => {
-  const { publicEncryptionKey, privateEncryptionKey } = useIdentity();
+  const { key, iv } = useIdentity();
 
   const [encryptedFileType, setEncryptedFileType] = useState<string | null>(
     null
@@ -41,39 +41,29 @@ const PhotosPage = () => {
 
   const onFileUpload = async (files: FileList) => {
     const file = files[0];
-    console.debug('file: ', file);
 
     const fileArrayBuffer = await file.arrayBuffer();
-    console.debug('fileArrayBuffer: ', fileArrayBuffer);
-    console.debug('publicEncryptionKey: ', publicEncryptionKey);
 
-    const arrayBuffer = await encryptData(publicEncryptionKey, fileArrayBuffer);
-    console.debug('arrayBuffer: ', arrayBuffer);
+    const arrayBuffer = await encryptData(key, iv, fileArrayBuffer);
+    setEncryptedArrayBuffer(arrayBuffer);
 
-    // setEncryptedArrayBuffer(arrayBuffer);
-    // setEncryptedFileType(file.type);
-    // console.debug('arrayBuffer: ', arrayBuffer);
+    setEncryptedFileType(file.type);
 
-    // // const reader = new FileReader();
-    // // reader.readAsDataURL(file);
-    // // reader.addEventListener('load', () => {
-    // //   invariant(typeof reader.result === 'string');
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.addEventListener('load', () => {
+      invariant(typeof reader.result === 'string');
 
-    // //   setPreviewUrl(reader.result);
-    // // });
+      setPreviewUrl(reader.result);
+    });
   };
 
   const onDecryptClick = async () => {
     invariant(encryptedArrayBuffer);
     invariant(encryptedFileType);
 
-    const arrayBuffer = await decryptData(
-      privateEncryptionKey,
-      encryptedArrayBuffer
-    );
-
+    const arrayBuffer = await decryptData(key, iv, encryptedArrayBuffer);
     const file = arrayBufferToFile(arrayBuffer, encryptedFileType);
-
     setDecryptedFileUrl(URL.createObjectURL(file));
   };
 
@@ -97,6 +87,7 @@ const PhotosPage = () => {
       <MetaTags title="Photos" description="Photos page" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mt-12 max-w-3xl space-y-12">
+          <Secrets />
           <div className="space-x-2 border-t border-gray-900/10 pt-12">
             <FileUpload
               id="image-input"

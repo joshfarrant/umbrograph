@@ -1,13 +1,12 @@
 import { PropsWithChildren } from 'react';
-import { TIdentity } from 'src/types/identity';
 
 export type TIdentityContext = {
-  publicEncryptionKey: CryptoKey;
-  privateEncryptionKey: CryptoKey;
-  publicSigningKey: CryptoKey;
-  privateSigningKey: CryptoKey;
-  setIdentity: (identity: TIdentity) => void;
-  regenerateIdentity: () => void;
+  key: CryptoKey;
+  setKey: (key: CryptoKey) => void;
+  iv: Uint8Array;
+  setIv: (iv: Uint8Array) => void;
+  stringifiedIdentity: string;
+  generateIdentity: () => Promise<void>;
 };
 
 export type TIdentityProviderProps = PropsWithChildren<Record<string, unknown>>;

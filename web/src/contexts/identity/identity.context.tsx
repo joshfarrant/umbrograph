@@ -7,52 +7,54 @@ import React, {
 } from 'react';
 import invariant from 'tiny-invariant';
 
+import { generateIv, generateKey, exportIdentity } from 'src/utils/crypto-v3';
 import { TIdentityContext, TIdentityProviderProps } from './identity.types';
-import { generateIdentity } from 'src/utils/crypto-v2';
-import { TIdentity } from 'src/types/identity';
 
 const IdentityContext = createContext<TIdentityContext | null>(null);
 
 export const IdentityProvider = ({
   children,
 }: TIdentityProviderProps): ReactElement => {
-  const [identity, setIdentity] = useState<TIdentity | null>(null);
+  const [key, setKey] = useState<CryptoKey | null>(null);
+  const [iv, setIv] = useState<Uint8Array | null>(null);
+  const [stringifiedIdentity, setStringifiedIdentity] = useState<string | null>(
+    null
+  );
 
-  const regenerateIdentity = async () => {
-    const newIdentity = await generateIdentity();
-    setIdentity(newIdentity);
+  const generateIdentity = async () => {
+    const newKey = await generateKey();
+    setKey(newKey);
+
+    const newIv = generateIv();
+    setIv(newIv);
+  };
+
+  const stringifyIdentity = async () => {
+    if (!key || !iv) {
+      return;
+    }
+
+    const exportedIdentity = await exportIdentity(key, iv);
+    const stringifiedIdentity = JSON.stringify(exportedIdentity, null, 2);
+
+    setStringifiedIdentity(stringifiedIdentity);
   };
 
   useEffect(() => {
-    regenerateIdentity();
+    generateIdentity();
   }, []);
 
-  if (!identity) {
+  useEffect(() => {
+    stringifyIdentity();
+  }, [key, iv]);
+
+  if (!key || !iv || !stringifiedIdentity) {
     return <span>Generating identity...</span>;
   }
 
-  // prettier-ignore
-  const {
-    encryptionKeys: {
-      publicKey: publicEncryptionKey,
-      privateKey: privateEncryptionKey,
-    },
-    signingKeys: {
-      publicKey: publicSigningKey,
-      privateKey: privateSigningKey,
-    },
-  } = identity;
-
   return (
     <IdentityContext.Provider
-      value={{
-        publicEncryptionKey,
-        privateEncryptionKey,
-        publicSigningKey,
-        privateSigningKey,
-        setIdentity,
-        regenerateIdentity,
-      }}
+      value={{ key, setKey, iv, setIv, stringifiedIdentity, generateIdentity }}
     >
       {children}
     </IdentityContext.Provider>

@@ -1,14 +1,13 @@
 import invariant from 'tiny-invariant';
 import clsx from 'clsx';
 import { JsonDownloadLink } from 'src/components/atoms/json-download-link';
-import { useSecrets } from 'src/contexts/secrets';
+import { useIdentity } from 'src/contexts/identity';
 import { importSecrets } from 'src/utils/crypto';
 import { FileUpload } from '../file-upload';
 import { TSecretsProps } from './secrets.types';
-import { cryptoTest } from 'src/utils/crypto-v2';
 
 export const Secrets = ({ className, ...sectionProps }: TSecretsProps) => {
-  const { stringifiedSecrets, generateSecrets, setKey, setIv } = useSecrets();
+  const { stringifiedSecrets, generateSecrets, setKey, setIv } = useIdentity();
 
   const onSecretsUpload = async (files: FileList) => {
     const file = files[0];

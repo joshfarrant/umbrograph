@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 import { QUERY } from 'src/components/File/FilesCell';
 import { Secrets } from 'src/components/atoms/secrets';
-import { useSecrets } from 'src/contexts/secrets';
+import { useIdentity } from 'src/contexts/identity';
 import { truncate } from 'src/lib/formatters';
 import { base64ToPreviewUrl } from 'src/utils/crypto';
 
@@ -26,7 +26,7 @@ type TEncryptedImageProps = {
 
 const EncryptedImage = ({ type, data }: TEncryptedImageProps) => {
   const [src, setSrc] = useState<string | null>(null);
-  const { key, iv } = useSecrets();
+  const { key, iv } = useIdentity();
 
   useEffect(() => {
     base64ToPreviewUrl(key, iv, type, data)

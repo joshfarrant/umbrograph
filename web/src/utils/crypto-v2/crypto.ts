@@ -1,4 +1,4 @@
-import { TIdentity, TJSONIdentity } from './crypto.types';
+import { TIdentity, TJSONIdentity } from '../../types/identity';
 
 const ENCRYPTION_KEY_ALGORITHM = 'RSA-OAEP';
 const SIGNING_KEY_ALGORITHM = 'RSA-PSS';
@@ -45,11 +45,11 @@ const generateSigningKeyPair = (): Promise<CryptoKeyPair> =>
 
 export const encryptData = (
   publicKey: CryptoKey,
-  encodedData: Uint8Array
+  encodedData: BufferSource
 ): Promise<ArrayBuffer> =>
   window.crypto.subtle.encrypt(
     {
-      name: ENCRYPTION_KEY_ALGORITHM,
+      name: 'RSA-OAEP',
     },
     publicKey,
     encodedData
@@ -166,13 +166,4 @@ export const generateIdentity = async (): Promise<TIdentity> => {
     encryptionKeys,
     signingKeys,
   };
-};
-
-export const cryptoTest = async () => {
-  const identity = await generateIdentity();
-  console.debug('identity:', identity);
-  const exportedIdentity = await exportIdentity(identity);
-  console.debug('exportedIdentity:', exportedIdentity);
-  const importedIdentity = await importIdentity(exportedIdentity);
-  console.debug('importedIdentity:', importedIdentity);
 };

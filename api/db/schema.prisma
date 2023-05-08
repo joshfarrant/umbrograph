@@ -14,3 +14,9 @@ model File {
   data  String
   type  String
 }
+
+// model Album {
+//   id    String  @id @default(uuid())
+//   owner String
+//   data  String
+// }

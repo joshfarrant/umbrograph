@@ -2,7 +2,7 @@ import { MetaTags } from '@redwoodjs/web';
 import { v4 as uuidv4 } from 'uuid';
 import { useState } from 'react';
 import { FileUpload } from 'src/components/atoms/file-upload';
-import { useSecrets } from 'src/contexts/secrets';
+import { useIdentity } from 'src/contexts/identity';
 import { encryptFileContents, fileToPreviewUrl } from 'src/utils/crypto';
 
 type TFileMeta = {
@@ -31,7 +31,7 @@ const encryptFileData = async (
 };
 
 const UploadPage = () => {
-  const { key, iv } = useSecrets();
+  const { key, iv } = useIdentity();
 
   const [files, setFiles] = useState<TFileMeta[]>([]);
 

@@ -8,11 +8,11 @@
 PRAGMA foreign_keys=OFF;
 CREATE TABLE "new_File" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "owner" TEXT NOT NULL,
+    "albumId" TEXT NOT NULL,
     "data" TEXT NOT NULL,
     "type" TEXT NOT NULL
 );
-INSERT INTO "new_File" ("data", "id", "owner") SELECT "data", "id", "owner" FROM "File";
+INSERT INTO "new_File" ("data", "id", "albumId") SELECT "data", "id", "albumId" FROM "File";
 DROP TABLE "File";
 ALTER TABLE "new_File" RENAME TO "File";
 PRAGMA foreign_key_check;

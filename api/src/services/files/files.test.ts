@@ -24,10 +24,10 @@ describe('files', () => {
 
   scenario('creates a file', async () => {
     const result = await createFile({
-      input: { owner: 'String', data: 'String', type: 'String' },
+      input: { albumId: 'String', data: 'String' },
     });
 
-    expect(result.owner).toEqual('String');
+    expect(result.albumId).toEqual('String');
     expect(result.data).toEqual('String');
   });
 
@@ -35,10 +35,10 @@ describe('files', () => {
     const original = (await file({ id: scenario.file.one.id })) as File;
     const result = await updateFile({
       id: original.id,
-      input: { owner: 'String2' },
+      input: { albumId: 'String2' },
     });
 
-    expect(result.owner).toEqual('String2');
+    expect(result.albumId).toEqual('String2');
   });
 
   scenario('deletes a file', async (scenario: StandardScenario) => {

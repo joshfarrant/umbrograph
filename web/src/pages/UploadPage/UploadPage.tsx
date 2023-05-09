@@ -1,15 +1,22 @@
-import { MetaTags } from '@redwoodjs/web';
+import { MetaTags, useMutation } from '@redwoodjs/web';
 import { v4 as uuidv4 } from 'uuid';
 import { useState } from 'react';
 import { FileUpload } from 'src/components/atoms/file-upload';
 import { useIdentity } from 'src/contexts/identity';
-import { encryptFileContents, fileToPreviewUrl } from 'src/utils/crypto';
+import { encryptData } from 'src/utils/crypto-v3';
+import {
+  arrayBufferToBase64,
+  fileToPreviewUrl,
+  stringToArrayBuffer,
+} from 'src/utils/codec';
+import { toast } from '@redwoodjs/web/toast';
 
 type TFileMeta = {
-  id: string;
-  arrayBuffer: ArrayBuffer;
+  name: string;
+  encryptedArrayBuffer: ArrayBuffer;
   type: string;
   previewUrl: string;
+  file: File;
 };
 
 const encryptFileData = async (
@@ -17,25 +24,49 @@ const encryptFileData = async (
   iv: Uint8Array,
   file: File
 ): Promise<TFileMeta> => {
-  const [arrayBuffer, previewUrl] = await Promise.all([
-    encryptFileContents(key, iv, file),
+  const fileArrayBuffer = await file.arrayBuffer();
+
+  /**
+   * TODO PreviewURL should be generated in the <Image /> component
+   * and memoised
+   */
+  const [encryptedArrayBuffer, previewUrl] = await Promise.all([
+    encryptData(key, iv, fileArrayBuffer),
     fileToPreviewUrl(file),
   ]);
 
   return {
-    id: uuidv4(),
-    arrayBuffer,
+    name: uuidv4(),
+    encryptedArrayBuffer,
+    file: file,
     type: file.type,
     previewUrl,
   };
 };
+
+const CREATE_FILE_MUTATION = gql`
+  mutation CreateFileMutation($input: CreateFileInput!) {
+    createFile(input: $input) {
+      id
+    }
+  }
+`;
 
 const UploadPage = () => {
   const { key, iv } = useIdentity();
 
   const [files, setFiles] = useState<TFileMeta[]>([]);
 
-  const onFileUpload = async (selectedFiles: FileList) => {
+  const [createFile, { loading, error }] = useMutation(CREATE_FILE_MUTATION, {
+    onCompleted: () => {
+      toast.success('File created');
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const onFileSelect = async (selectedFiles: FileList) => {
     const selectedFilesArray = Array.from(selectedFiles);
 
     const promises = selectedFilesArray.map((file) =>
@@ -45,6 +76,37 @@ const UploadPage = () => {
     const encryptedFiles = await Promise.all(promises);
 
     setFiles((files) => [...files, ...encryptedFiles]);
+  };
+
+  const uploadSelectedFiles = async () => {
+    const encryptedFilesPromises = files.map(async (file) => {
+      const dataObj = {
+        name: file.name,
+        type: file.type,
+        contents: arrayBufferToBase64(file.encryptedArrayBuffer),
+      };
+
+      const data = JSON.stringify(dataObj);
+
+      const arrayBuffer = stringToArrayBuffer(data);
+
+      const encryptedDataArrayBuffer = await encryptData(key, iv, arrayBuffer);
+
+      const encryptedData = arrayBufferToBase64(encryptedDataArrayBuffer);
+
+      return {
+        albumId: 'josh-test-1',
+        data: encryptedData,
+      };
+    });
+
+    const encryptedFiles = await Promise.all(encryptedFilesPromises);
+
+    await Promise.all(
+      encryptedFiles.map((file) => createFile({ variables: { input: file } }))
+    );
+
+    setFiles([]);
   };
 
   return (
@@ -66,7 +128,7 @@ const UploadPage = () => {
                   id="image-input"
                   name="image"
                   accept="image/*"
-                  onUpload={onFileUpload}
+                  onUpload={onFileSelect}
                 >
                   Select images
                 </FileUpload>
@@ -84,13 +146,14 @@ const UploadPage = () => {
                           id="image-input"
                           name="image"
                           accept="image/*"
-                          onUpload={onFileUpload}
+                          onUpload={onFileSelect}
                         >
                           Add images
                         </FileUpload>
                         <button
                           type="button"
                           className="inline-block cursor-pointer rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                          onClick={() => uploadSelectedFiles()}
                         >
                           Upload
                         </button>
@@ -104,7 +167,7 @@ const UploadPage = () => {
                     >
                       {files.map((file) => (
                         <li
-                          key={file.id}
+                          key={file.name}
                           className="col-span-1 flex items-center justify-center divide-y divide-gray-200 rounded-lg bg-white shadow"
                         >
                           <img src={file.previewUrl} />

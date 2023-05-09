@@ -1,26 +1,23 @@
 export const schema = gql`
   type File {
     id: String!
-    owner: String!
+    albumId: String!
     data: String!
-    type: String!
   }
 
   type Query {
-    files: [File!]! @requireAuth
+    files(albumId: String!): [File!]! @requireAuth
     file(id: String!): File @requireAuth
   }
 
   input CreateFileInput {
-    owner: String!
+    albumId: String!
     data: String!
-    type: String!
   }
 
   input UpdateFileInput {
-    owner: String
+    albumId: String
     data: String
-    type: String
   }
 
   type Mutation {

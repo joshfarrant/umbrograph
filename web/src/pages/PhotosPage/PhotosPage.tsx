@@ -27,7 +27,7 @@ const PhotosPage = () => {
   );
   const [encryptedArrayBuffer, setEncryptedArrayBuffer] =
     useState<ArrayBuffer | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [decryptedFileUrl, setDecryptedFileUrl] = useState<string | null>(null);
 
   const [createFile, { loading, error }] = useMutation(CREATE_FILE_MUTATION, {
@@ -52,9 +52,10 @@ const PhotosPage = () => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.addEventListener('load', () => {
-      invariant(typeof reader.result === 'string');
+      const { result } = reader;
+      invariant(typeof result === 'string');
 
-      setPreviewUrl(reader.result);
+      setPreviewUrls((urls) => [...urls, result]);
     });
   };
 
@@ -74,7 +75,7 @@ const PhotosPage = () => {
     const base64 = arrayBufferToBase64(encryptedArrayBuffer);
 
     const input: CreateFileInput = {
-      owner: 'josh',
+      albumId: 'josh',
       type: encryptedFileType,
       data: base64,
     };
@@ -97,7 +98,7 @@ const PhotosPage = () => {
             >
               Upload an image
             </FileUpload>
-            {previewUrl ? (
+            {previewUrls.length > 0 ? (
               <button
                 className="rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                 onClick={() => saveFile()}
@@ -109,18 +110,20 @@ const PhotosPage = () => {
 
           <section className="flex flex-row border-t border-gray-900/10 pt-12">
             <div className="flex-1">
-              {previewUrl ? (
-                <div>
-                  <h2>Uploaded image</h2>
-                  <img src={previewUrl} alt="Preview" />
-                </div>
+              {previewUrls.length > 0 ? (
+                previewUrls.map((previewUrl) => (
+                  <div>
+                    <h2>Uploaded image</h2>
+                    <img src={previewUrl} alt="Preview" />
+                  </div>
+                ))
               ) : (
                 <span>Upload an image to see a preview</span>
               )}
             </div>
 
             <div className="flex-1">
-              {previewUrl ? (
+              {previewUrls.length > 0 ? (
                 decryptedFileUrl ? (
                   <div>
                     <h2>Decrypted image</h2>

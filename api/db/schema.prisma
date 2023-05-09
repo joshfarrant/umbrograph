@@ -9,14 +9,7 @@ generator client {
 }
 
 model File {
-  id    String  @id @default(uuid())
-  owner String
-  data  String
-  type  String
+  id      String @id @default(uuid())
+  albumId String
+  data    String
 }
-
-// model Album {
-//   id    String  @id @default(uuid())
-//   owner String
-//   data  String
-// }

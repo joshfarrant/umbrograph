@@ -16,3 +16,6 @@
   open = true
 [notifications]
   versionUpdates = ["latest"]
+[config]
+  # Increase the maximum payload size to 10 megabytes
+  bodyLimit = "10MB"

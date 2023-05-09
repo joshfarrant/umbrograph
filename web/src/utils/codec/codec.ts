@@ -1,5 +1,11 @@
 import invariant from 'tiny-invariant';
 
+export const stringToArrayBuffer = (str: string): ArrayBuffer => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  return data.buffer;
+};
+
 export const fileToArrayBuffer = async (file: File): Promise<ArrayBuffer> =>
   file.arrayBuffer();
 

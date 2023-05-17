@@ -1,14 +1,16 @@
 import { useState } from 'react';
+
 import invariant from 'tiny-invariant';
+import type { CreateFileInput } from 'types/graphql';
+
 import { MetaTags } from '@redwoodjs/web';
 import { useMutation } from '@redwoodjs/web';
 import { toast } from '@redwoodjs/web/toast';
 
-import { arrayBufferToBase64, arrayBufferToFile } from 'src/utils/codec';
-import { useIdentity } from 'src/contexts/identity';
 import { FileUpload } from 'src/components/atoms/file-upload';
-import type { CreateFileInput } from 'types/graphql';
 import { Secrets } from 'src/components/atoms/secrets';
+import { useIdentity } from 'src/contexts/identity';
+import { arrayBufferToBase64, arrayBufferToFile } from 'src/utils/codec';
 import { decryptData, encryptData } from 'src/utils/crypto-v3';
 
 const CREATE_FILE_MUTATION = gql`
@@ -100,7 +102,7 @@ const PhotosPage = () => {
             </FileUpload>
             {previewUrls.length > 0 ? (
               <button
-                className="bg-primary-600 hover:bg-primary-500 focus-visible:outline-primary-600 rounded-md px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                className="rounded-md bg-primary-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
                 onClick={() => saveFile()}
               >
                 Save to API
@@ -131,7 +133,7 @@ const PhotosPage = () => {
                   </div>
                 ) : (
                   <button
-                    className="bg-primary-600 hover:bg-primary-500 focus-visible:outline-primary-600 rounded-md px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                    className="rounded-md bg-primary-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
                     onClick={() => onDecryptClick()}
                   >
                     Decrypt

@@ -1,9 +1,9 @@
-import invariant from 'tiny-invariant';
 import { ArrowUpTrayIcon } from '@heroicons/react/20/solid';
 import { KeyIcon } from '@heroicons/react/24/outline';
+import clsx from 'clsx';
+import invariant from 'tiny-invariant';
 
 import { TIdentityUploadProps } from './identity-upload.types';
-import clsx from 'clsx';
 
 export const IdentityUpload = ({
   onUpload,

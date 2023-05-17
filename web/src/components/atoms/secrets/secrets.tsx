@@ -1,9 +1,12 @@
-import invariant from 'tiny-invariant';
 import clsx from 'clsx';
+import invariant from 'tiny-invariant';
+
 import { JsonDownloadLink } from 'src/components/atoms/json-download-link';
 import { useIdentity } from 'src/contexts/identity';
 import { importIdentity } from 'src/utils/crypto-v3';
+
 import { FileUpload } from '../file-upload';
+
 import { TSecretsProps } from './secrets.types';
 
 export const Secrets = ({ className, ...sectionProps }: TSecretsProps) => {
@@ -45,7 +48,7 @@ export const Secrets = ({ className, ...sectionProps }: TSecretsProps) => {
         </FileUpload>
 
         <button
-          className="bg-primary-600 hover:bg-primary-500 focus-visible:outline-primary-600 rounded-md px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="rounded-md bg-primary-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
           onClick={() => generateIdentity()}
         >
           Regenerate secrets

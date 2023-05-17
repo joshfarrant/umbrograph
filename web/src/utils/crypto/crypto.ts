@@ -1,7 +1,7 @@
+import invariant from 'tiny-invariant';
 import { v4 as uuid } from 'uuid';
 
 import { Secret } from 'src/types/secret';
-import invariant from 'tiny-invariant';
 
 export const encryptFileContents = async (
   key: CryptoKey,

@@ -2,7 +2,9 @@ import type {
   FindFilesInAlbum,
   FindFilesInAlbumVariables,
 } from 'types/graphql';
+
 import type { CellSuccessProps, CellFailureProps } from '@redwoodjs/web';
+
 import { Album } from 'src/components/Album';
 
 export const QUERY = gql`

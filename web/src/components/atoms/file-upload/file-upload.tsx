@@ -1,9 +1,9 @@
-import invariant from 'tiny-invariant';
 import { ArrowUpTrayIcon } from '@heroicons/react/20/solid';
 import { PhotoIcon } from '@heroicons/react/24/outline';
+import clsx from 'clsx';
+import invariant from 'tiny-invariant';
 
 import { TFileUploadProps } from './file-upload.types';
-import clsx from 'clsx';
 
 export const FileUpload = ({
   onUpload,
@@ -22,7 +22,7 @@ export const FileUpload = ({
         <div className="mt-6">
           <label
             className={clsx(
-              'bg-primary-600 hover:bg-primary-500 focus-visible:outline-primary-600 inline-flex cursor-pointer items-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+              'inline-flex cursor-pointer items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
               className
             )}
             htmlFor={id}

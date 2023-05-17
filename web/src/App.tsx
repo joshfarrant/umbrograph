@@ -1,9 +1,9 @@
 import { FatalErrorBoundary, RedwoodProvider } from '@redwoodjs/web';
 import { RedwoodApolloProvider } from '@redwoodjs/web/apollo';
 
+import { IdentityProvider } from 'src/contexts/identity';
 import FatalErrorPage from 'src/pages/FatalErrorPage';
 import Routes from 'src/Routes';
-import { IdentityProvider } from 'src/contexts/identity';
 
 import './index.css';
 

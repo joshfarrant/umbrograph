@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { TFileGridProps } from './FileGrid.types';
+
 import type { File as TFile } from 'types/graphql';
-import { decryptData } from 'src/utils/crypto-v3';
+
 import { useIdentity } from 'src/contexts/identity';
 import {
   arrayBufferToFile,
@@ -10,6 +10,9 @@ import {
   fileToPreviewUrl,
   stringToArrayBuffer,
 } from 'src/utils/codec';
+import { decryptData } from 'src/utils/crypto-v3';
+
+import { TFileGridProps } from './FileGrid.types';
 
 type TFileProps = {
   id: TFile['id'];
@@ -52,7 +55,7 @@ const FileItem = ({ id, albumId, data }: TFileProps) => {
 
   return (
     <li className="relative">
-      <div className="focus-within:ring-primary-500 group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
+      <div className="group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
         <img
           src={imgSrc}
           className="pointer-events-none object-contain group-hover:opacity-75"

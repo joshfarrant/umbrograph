@@ -7,7 +7,7 @@
     ]
   },
   "devDependencies": {
-    "@redwoodjs/core": "5.0.3",
+    "@redwoodjs/core": "5.1.5",
     "@tailwindcss/typography": "^0.5.9",
     "@types/uuid": "^9.0.1",
     "prettier-plugin-tailwindcss": "^0.2.8"
@@ -15,7 +15,9 @@
   "eslintConfig": {
     "extends": "@redwoodjs/eslint-config",
     "root": true,
-    "semi": "always"
+    "rules": {
+      "semi": "off"
+    }
   },
   "engines": {
     "node": "=18.x",

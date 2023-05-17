@@ -1,10 +1,5 @@
-import { Link } from '@redwoodjs/router';
-import { MetaTags } from '@redwoodjs/web';
-import clsx from 'clsx';
 import { HTMLAttributes, useState } from 'react';
-import { useIdentity } from 'src/contexts/identity';
-import { createPublicDigestFromKey } from 'src/utils/crypto-v3';
-import { useAsyncState } from 'src/hooks/use-async-state';
+
 import {
   KeyIcon,
   ChevronRightIcon,
@@ -13,7 +8,15 @@ import {
   ArrowPathIcon,
   TrashIcon,
 } from '@heroicons/react/20/solid';
+import clsx from 'clsx';
+
+import { Link } from '@redwoodjs/router';
+import { MetaTags } from '@redwoodjs/web';
+
 import { JsonDownloadLink } from 'src/components/atoms/json-download-link';
+import { useIdentity } from 'src/contexts/identity';
+import { useAsyncState } from 'src/hooks/use-async-state';
+import { createPublicDigestFromKey } from 'src/utils/crypto-v3';
 
 type TFaqProps = {
   question: string;

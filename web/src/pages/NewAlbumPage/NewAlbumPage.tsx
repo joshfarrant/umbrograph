@@ -1,9 +1,15 @@
-import { MetaTags, useMutation } from '@redwoodjs/web';
-import { v4 as uuidv4 } from 'uuid';
 import { useState } from 'react';
+
+import { FolderIcon } from '@heroicons/react/20/solid';
+import { v4 as uuidv4 } from 'uuid';
+
+import { navigate, routes } from '@redwoodjs/router';
+import { MetaTags, useMutation } from '@redwoodjs/web';
+import { toast } from '@redwoodjs/web/toast';
+
 import { FileUpload } from 'src/components/atoms/file-upload';
 import { useIdentity } from 'src/contexts/identity';
-import { encryptData } from 'src/utils/crypto-v3';
+import { useConst } from 'src/hooks/use-const';
 import {
   arrayBufferToBase64,
   arrayBufferToString,
@@ -11,10 +17,7 @@ import {
   fileToPreviewUrl,
   stringToArrayBuffer,
 } from 'src/utils/codec';
-import { toast } from '@redwoodjs/web/toast';
-import { useConst } from 'src/hooks/use-const';
-import { FolderIcon } from '@heroicons/react/20/solid';
-import { navigate, routes } from '@redwoodjs/router';
+import { encryptData } from 'src/utils/crypto-v3';
 
 type TFileMeta = {
   name: string;
@@ -120,7 +123,7 @@ const NewAlbumPage = () => {
                 />
                 <span className="font-mono">{albumId}</span>
                 <button
-                  className="hover:text-primary-500 ml-2 underline"
+                  className="ml-2 underline hover:text-primary-500"
                   onClick={() => {
                     setAlbumId(uuidv4());
                   }}
@@ -157,7 +160,7 @@ const NewAlbumPage = () => {
                         <div className="ml-4 mt-2 flex-shrink-0">
                           <button
                             type="button"
-                            className="bg-primary-600 hover:bg-primary-500 focus-visible:outline-primary-600 inline-block cursor-pointer rounded-md px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                            className="inline-block cursor-pointer rounded-md bg-primary-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
                             onClick={() => uploadSelectedFiles()}
                           >
                             Upload

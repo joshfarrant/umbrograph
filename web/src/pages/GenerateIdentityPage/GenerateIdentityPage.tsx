@@ -1,7 +1,10 @@
+import { PropsWithChildren, useEffect, useState } from 'react';
+
+import clsx from 'clsx';
+
 import { Link, routes } from '@redwoodjs/router';
 import { MetaTags } from '@redwoodjs/web';
-import clsx from 'clsx';
-import { PropsWithChildren, useEffect, useState } from 'react';
+
 import { useScrollingRandomString } from 'src/hooks/use-scrolling-random-string';
 
 type TCharacterProps = PropsWithChildren<{

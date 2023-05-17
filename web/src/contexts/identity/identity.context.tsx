@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+
 import invariant from 'tiny-invariant';
 
 import {
@@ -13,6 +14,7 @@ import {
   exportIdentity,
   importIdentity,
 } from 'src/utils/crypto-v3';
+
 import { TIdentityContext, TIdentityProviderProps } from './identity.types';
 
 const IdentityContext = createContext<TIdentityContext | null>(null);

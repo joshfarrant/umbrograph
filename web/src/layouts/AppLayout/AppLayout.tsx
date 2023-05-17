@@ -1,4 +1,5 @@
 import { NavBar } from 'src/components/NavBar';
+
 import { AppLayoutProps } from './AppLayout.types';
 
 export const AppLayout = ({ children }: AppLayoutProps) => {

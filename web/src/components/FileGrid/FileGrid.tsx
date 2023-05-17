@@ -3,14 +3,12 @@ import { useEffect, useState } from 'react';
 import type { File as TFile } from 'types/graphql';
 
 import { useIdentity } from 'src/contexts/identity';
+import { arrayBufferToString, base64ToArrayBuffer } from 'src/utils/codec';
 import {
-  arrayBufferToFile,
-  arrayBufferToString,
-  base64ToArrayBuffer,
-  fileToPreviewUrl,
-  stringToArrayBuffer,
-} from 'src/utils/codec';
-import { decryptData } from 'src/utils/crypto-v3';
+  decryptData,
+  getPrivateEncryptionIv,
+  getPrivateEncryptionKey,
+} from 'src/utils/crypto-v4';
 
 import { TFileGridProps } from './FileGrid.types';
 
@@ -21,7 +19,7 @@ type TFileProps = {
 };
 
 const FileItem = ({ id, albumId, data }: TFileProps) => {
-  const { key, iv } = useIdentity();
+  const { identity } = useIdentity();
   const [name, setName] = useState<string | null>(null);
   const [imgSrc, setImgSrc] = useState<string | null>(null);
   const [type, setType] = useState<string | null>(null);
@@ -29,8 +27,8 @@ const FileItem = ({ id, albumId, data }: TFileProps) => {
   const decryptFile = async () => {
     const encryptedArrayBuffer = base64ToArrayBuffer(data);
     const decryptedArrayBuffer = await decryptData(
-      key,
-      iv,
+      getPrivateEncryptionKey(identity),
+      getPrivateEncryptionIv(identity),
       encryptedArrayBuffer
     );
     const stringified = arrayBufferToString(decryptedArrayBuffer);
@@ -55,7 +53,7 @@ const FileItem = ({ id, albumId, data }: TFileProps) => {
 
   return (
     <li className="relative">
-      <div className="group aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
+      <div className="aspect-h-7 aspect-w-10 focus-within:ring-primary-500 group block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
         <img
           src={imgSrc}
           className="pointer-events-none object-contain group-hover:opacity-75"

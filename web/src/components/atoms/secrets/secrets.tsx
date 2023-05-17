@@ -3,15 +3,14 @@ import invariant from 'tiny-invariant';
 
 import { JsonDownloadLink } from 'src/components/atoms/json-download-link';
 import { useIdentity } from 'src/contexts/identity';
-import { importIdentity } from 'src/utils/crypto-v3';
+import { importIdentity } from 'src/utils/crypto-v4';
 
 import { FileUpload } from '../file-upload';
 
 import { TSecretsProps } from './secrets.types';
 
 export const Secrets = ({ className, ...sectionProps }: TSecretsProps) => {
-  const { stringifiedIdentity, generateIdentity, setKey, setIv } =
-    useIdentity();
+  const { stringifiedIdentity, generateIdentity, setIdentity } = useIdentity();
 
   const onSecretsUpload = async (files: FileList) => {
     const file = files[0];
@@ -25,9 +24,7 @@ export const Secrets = ({ className, ...sectionProps }: TSecretsProps) => {
       const jsonData = JSON.parse(fileContents);
 
       const secrets = await importIdentity(jsonData);
-      const { key, iv } = secrets;
-      setKey(key);
-      setIv(iv);
+      setIdentity(secrets);
     });
   };
 

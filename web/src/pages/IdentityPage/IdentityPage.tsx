@@ -16,7 +16,10 @@ import { MetaTags } from '@redwoodjs/web';
 import { JsonDownloadLink } from 'src/components/atoms/json-download-link';
 import { useIdentity } from 'src/contexts/identity';
 import { useAsyncState } from 'src/hooks/use-async-state';
-import { createPublicDigestFromKey } from 'src/utils/crypto-v3';
+import {
+  createPublicDigestFromKey,
+  getPublicSigningKey,
+} from 'src/utils/crypto-v4';
 
 type TFaqProps = {
   question: string;
@@ -98,9 +101,11 @@ const SecretText = ({ className, children }: TSecretTextProps) => {
 };
 
 const IdentityPage = () => {
-  const { key, stringifiedIdentity } = useIdentity();
+  const { identity, stringifiedIdentity } = useIdentity();
 
-  const [digest] = useAsyncState(() => createPublicDigestFromKey(key));
+  const [digest] = useAsyncState(() =>
+    createPublicDigestFromKey(getPublicSigningKey(identity))
+  );
 
   return (
     <>
@@ -188,7 +193,7 @@ const IdentityPage = () => {
               <Faq
                 question="How does it work?"
                 answer="Your Identity is used to securely encrypt your images before they
-              ever leave your device. It's then used again to decrypt your images on your device when you come back to view them. Your Identity never leaves your machine."
+                                                                                                                                                                                          ever leave your device. It's then used again to decrypt your images on your device when you come back to view them. Your Identity never leaves your machine."
               />
 
               <Faq
@@ -198,12 +203,7 @@ const IdentityPage = () => {
 
               <Faq
                 question="Is all this secure?"
-                answer="Images are encrypted before they ever leave your device and can only ever be decrypted on your device using your Identity. Images are encrypted using AES-GCM, a widely accepted and secure encryption algorithm that
-              provides complete confidentiality of data. AES-GCM is used
-              in many applications including online banking, secure messaging,
-              and cloud storage. Its security has been extensively reviewed and
-              tested by experts in the field, and it is considered a reliable
-              choice for protecting sensitive information."
+                answer="Images are encrypted before they ever leave your device and can only ever be decrypted on your device using your Identity. Images are encrypted using AES-GCM, a widely accepted and secure encryption algorithm that provides complete confidentiality of data. AES-GCM is used in many applications including online banking, secure messaging, and cloud storage. Its security has been extensively reviewed and tested by experts in the field, and it is considered a reliable choice for protecting sensitive information."
               />
             </dl>
           </div>

@@ -9,96 +9,107 @@ import React, {
 import invariant from 'tiny-invariant';
 
 import {
-  generateIv,
-  generateKey,
+  generateIdentity,
   exportIdentity,
   importIdentity,
-} from 'src/utils/crypto-v3';
+  type TIdentity,
+  JsonIdentitySchema,
+} from 'src/utils/crypto-v4';
 
 import { TIdentityContext, TIdentityProviderProps } from './identity.types';
 
 const IdentityContext = createContext<TIdentityContext | null>(null);
 
-const storeIdentity = async (stringifiedIdentity: string) => {
+const setIdentityInLocalStorage = async (stringifiedIdentity: string) => {
   localStorage.setItem('identity', stringifiedIdentity);
 };
 
-const retrieveIdentity = async () => {
+const getIdentityFromLocalStorage = async (): Promise<TIdentity | null> => {
   const identityString = localStorage.getItem('identity');
 
   if (!identityString) {
-    return;
+    return null;
   }
 
-  const jsonIdentity = JSON.parse(identityString);
-  const identity = await importIdentity(jsonIdentity);
-  return identity;
+  try {
+    const jsonIdentity = JSON.parse(identityString);
+    JsonIdentitySchema.safeParse(jsonIdentity);
+
+    const identity = await importIdentity(jsonIdentity);
+
+    return identity;
+  } catch {
+    return null;
+  }
 };
 
 export const IdentityProvider = ({
   children,
 }: TIdentityProviderProps): ReactElement => {
-  const [key, setKey] = useState<CryptoKey | null>(null);
-  const [iv, setIv] = useState<Uint8Array | null>(null);
+  const [identity, setIdentity] = useState<TIdentity | null>(null);
   const [stringifiedIdentity, setStringifiedIdentity] = useState<string | null>(
     null
   );
 
-  const generateIdentity = async () => {
-    const newKey = await generateKey();
-    setKey(newKey);
-
-    const newIv = generateIv();
-    setIv(newIv);
-  };
-
-  const stringifyIdentity = async () => {
-    if (!key || !iv) {
-      return;
-    }
-
-    const exportedIdentity = await exportIdentity(key, iv);
-    const stringifiedIdentity = JSON.stringify(exportedIdentity, null, 2);
-
-    setStringifiedIdentity(stringifiedIdentity);
+  const generateAndSetIdentity = async () => {
+    const newIdentity = await generateIdentity();
+    setIdentity(newIdentity);
   };
 
   useEffect(() => {
-    retrieveIdentity().then((identity) => {
-      if (!identity) {
-        generateIdentity();
+    getIdentityFromLocalStorage().then((storedIdentity) => {
+      if (storedIdentity) {
+        setIdentity(storedIdentity);
         return;
       }
 
-      const { key, iv } = identity;
-      setKey(key);
-      setIv(iv);
+      /**
+       * TODO Maybe I should be a bit more careful here. If
+       * the identity in localStorage isn't valid am I ok just
+       * deleting it completely as I'm doing here, or might
+       * user still need it, in which case I should tell them
+       * what's happened and maybe back up the identity into
+       * a different localStorge variable until they decide
+       * what to do. I should be quite aggressive in prompting
+       * them to decide as having it hang around could be a
+       * security issue. Ideally we want it gone.
+       */
+      generateAndSetIdentity();
     });
   }, []);
 
   useEffect(() => {
+    const stringifyIdentity = async () => {
+      if (!identity) {
+        return;
+      }
+
+      const exportedIdentity = await exportIdentity(identity);
+      const stringifiedIdentity = JSON.stringify(exportedIdentity, null, 2);
+
+      setStringifiedIdentity(stringifiedIdentity);
+    };
+
     stringifyIdentity();
-  }, [key, iv]);
+  }, [identity]);
 
   useEffect(() => {
     if (stringifiedIdentity) {
-      storeIdentity(stringifiedIdentity);
+      setIdentityInLocalStorage(stringifiedIdentity);
     }
   }, [stringifiedIdentity]);
 
-  if (!key || !iv || !stringifiedIdentity) {
-    return <span>Generating identity...</span>;
+  if (!identity || !stringifiedIdentity) {
+    return <span>Initialising identity...</span>;
   }
 
   return (
     <IdentityContext.Provider
       value={{
-        key,
-        setKey,
-        iv,
-        setIv,
+        identity,
+        setIdentity,
         stringifiedIdentity,
-        generateIdentity,
+        generateIdentity: generateAndSetIdentity,
       }}
     >
       {children}

@@ -12,12 +12,14 @@ import { useIdentity } from 'src/contexts/identity';
 import { useConst } from 'src/hooks/use-const';
 import {
   arrayBufferToBase64,
-  arrayBufferToString,
   fileToArrayBuffer,
-  fileToPreviewUrl,
   stringToArrayBuffer,
 } from 'src/utils/codec';
-import { encryptData } from 'src/utils/crypto-v3';
+import {
+  encryptData,
+  getPrivateEncryptionIv,
+  getPrivateEncryptionKey,
+} from 'src/utils/crypto-v4';
 
 type TFileMeta = {
   name: string;
@@ -34,7 +36,7 @@ const CREATE_FILE_MUTATION = gql`
 `;
 
 const NewAlbumPage = () => {
-  const { key, iv } = useIdentity();
+  const { identity } = useIdentity();
 
   const [files, setFiles] = useState<TFileMeta[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -85,7 +87,11 @@ const NewAlbumPage = () => {
 
       const arrayBuffer = stringToArrayBuffer(data);
 
-      const encryptedDataArrayBuffer = await encryptData(key, iv, arrayBuffer);
+      const encryptedDataArrayBuffer = await encryptData(
+        getPrivateEncryptionKey(identity),
+        getPrivateEncryptionIv(identity),
+        arrayBuffer
+      );
 
       const encryptedData = arrayBufferToBase64(encryptedDataArrayBuffer);
 
@@ -123,7 +129,7 @@ const NewAlbumPage = () => {
                 />
                 <span className="font-mono">{albumId}</span>
                 <button
-                  className="ml-2 underline hover:text-primary-500"
+                  className="hover:text-primary-500 ml-2 underline"
                   onClick={() => {
                     setAlbumId(uuidv4());
                   }}
@@ -160,7 +166,7 @@ const NewAlbumPage = () => {
                         <div className="ml-4 mt-2 flex-shrink-0">
                           <button
                             type="button"
-                            className="inline-block cursor-pointer rounded-md bg-primary-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                            className="bg-primary-600 hover:bg-primary-500 focus-visible:outline-primary-600 inline-block cursor-pointer rounded-md px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                             onClick={() => uploadSelectedFiles()}
                           >
                             Upload

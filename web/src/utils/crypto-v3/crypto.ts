@@ -1,4 +1,5 @@
 import { Secret } from 'src/types/secret';
+
 import { TIdentity, TJSONIdentity } from './crypto.types';
 
 export const generateKey = async (): Promise<CryptoKey> =>

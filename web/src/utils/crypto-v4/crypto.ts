@@ -1,4 +1,12 @@
-import { TIdentity, TJsonIdentity } from './crypto.types';
+import { pipe } from 'fp-ts/lib/function';
+
+import {
+  getPrivateEncryptionIv,
+  getPrivateEncryptionKey,
+  getPrivateSigningKey,
+  getPublicSigningKey,
+} from './crypto.optics';
+import { JsonIdentitySchema, TIdentity, TJsonIdentity } from './crypto.types';
 
 const ENCRYPTION_KEY_ALGORITHM: AlgorithmIdentifier = 'AES-GCM';
 const SIGNING_KEY_ALGORITHM: AlgorithmIdentifier = 'RSA-PSS';
@@ -47,20 +55,11 @@ export const decryptData = (
   iv: Uint8Array,
   encryptedData: ArrayBuffer
 ): Promise<ArrayBuffer> =>
-  window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encryptedData);
-
-export const createPublicDigestFromKey = async (
-  key: CryptoKey
-): Promise<string> => {
-  const encoder = new TextEncoder();
-  const jwk = await window.crypto.subtle.exportKey('jwk', key);
-  const data = encoder.encode(JSON.stringify(jwk));
-  const digest = await window.crypto.subtle.digest('SHA-256', data);
-
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-};
+  window.crypto.subtle.decrypt(
+    { name: ENCRYPTION_KEY_ALGORITHM, iv },
+    key,
+    encryptedData
+  );
 
 export const signData = (
   privateKey: CryptoKey,
@@ -90,6 +89,19 @@ export const verifyData = (
     encodedData
   );
 
+export const createPublicDigestFromKey = async (
+  key: CryptoKey
+): Promise<string> => {
+  const encoder = new TextEncoder();
+  const jwk = await window.crypto.subtle.exportKey('jwk', key);
+  const data = encoder.encode(JSON.stringify(jwk));
+  const digest = await window.crypto.subtle.digest('SHA-256', data);
+
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+};
+
 const importKey =
   (algorithm: AlgorithmIdentifier, keyUsage: KeyUsage[]) =>
   (jwk: JsonWebKey): Promise<CryptoKey> =>
@@ -105,12 +117,13 @@ const importPrivateSigningKey = importKey(SIGNING_KEY_ALGORITHM, ['sign']);
 export const importIdentity = async (
   jsonIdentity: TJsonIdentity
 ): Promise<TIdentity> => {
-  // TODO zod this identity as it's user data and can't be trusted
+  JsonIdentitySchema.parse(jsonIdentity);
+
   const [publicSigningKey, privateSigningKey, encryptionKey] =
     await Promise.all([
-      importPublicSigningKey(jsonIdentity.keys.public.signing),
-      importPrivateSigningKey(jsonIdentity.keys.private.signing),
-      importEncryptionKey(jsonIdentity.keys.private.encryption.key),
+      pipe(jsonIdentity, getPublicSigningKey, importPublicSigningKey),
+      pipe(jsonIdentity, getPrivateSigningKey, importPrivateSigningKey),
+      pipe(jsonIdentity, getPrivateEncryptionKey, importEncryptionKey),
     ]);
 
   const identity = {
@@ -121,7 +134,7 @@ export const importIdentity = async (
       private: {
         encryption: {
           key: encryptionKey,
-          iv: new Uint8Array(jsonIdentity.keys.private.encryption.iv),
+          iv: new Uint8Array(getPrivateEncryptionIv(jsonIdentity)),
         },
         signing: privateSigningKey,
       },
@@ -134,15 +147,17 @@ export const importIdentity = async (
 const exportKey = (key: CryptoKey): Promise<JsonWebKey> =>
   window.crypto.subtle.exportKey('jwk', key);
 
-export const exportIdentity = async (identity: TIdentity): Promise<TJsonIdentity> => {
+export const exportIdentity = async (
+  identity: TIdentity
+): Promise<TJsonIdentity> => {
   const [publicSigningKey, privateSigningKey, encryptionKey] =
     await Promise.all([
-      exportKey(identity.keys.public.signing),
-      exportKey(identity.keys.private.signing),
-      exportKey(identity.keys.private.encryption.key),
+      pipe(identity, getPublicSigningKey, exportKey),
+      pipe(identity, getPrivateSigningKey, exportKey),
+      pipe(identity, getPrivateEncryptionKey, exportKey),
     ]);
 
-  const ivArray = Array.from(identity.keys.private.encryption.iv);
+  const ivArray = Array.from(getPrivateEncryptionIv(identity));
 
   const jsonIdentity = {
     version: 'v1' as const,
@@ -160,7 +175,8 @@ export const exportIdentity = async (identity: TIdentity): Promise<TJsonIdentity
     },
   };
 
-  // TODO zod this, just to be extra safe?
+  JsonIdentitySchema.parse(jsonIdentity);
+
   return jsonIdentity;
 };
 

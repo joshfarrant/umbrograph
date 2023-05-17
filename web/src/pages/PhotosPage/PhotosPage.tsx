@@ -11,7 +11,12 @@ import { FileUpload } from 'src/components/atoms/file-upload';
 import { Secrets } from 'src/components/atoms/secrets';
 import { useIdentity } from 'src/contexts/identity';
 import { arrayBufferToBase64, arrayBufferToFile } from 'src/utils/codec';
-import { decryptData, encryptData } from 'src/utils/crypto-v3';
+import {
+  decryptData,
+  encryptData,
+  getPrivateEncryptionIv,
+  getPrivateEncryptionKey,
+} from 'src/utils/crypto-v4';
 
 const CREATE_FILE_MUTATION = gql`
   mutation CreateFileMutation($input: CreateFileInput!) {
@@ -22,7 +27,7 @@ const CREATE_FILE_MUTATION = gql`
 `;
 
 const PhotosPage = () => {
-  const { key, iv } = useIdentity();
+  const { identity } = useIdentity();
 
   const [encryptedFileType, setEncryptedFileType] = useState<string | null>(
     null
@@ -46,7 +51,11 @@ const PhotosPage = () => {
 
     const fileArrayBuffer = await file.arrayBuffer();
 
-    const arrayBuffer = await encryptData(key, iv, fileArrayBuffer);
+    const arrayBuffer = await encryptData(
+      getPrivateEncryptionKey(identity),
+      getPrivateEncryptionIv(identity),
+      fileArrayBuffer
+    );
     setEncryptedArrayBuffer(arrayBuffer);
 
     setEncryptedFileType(file.type);
@@ -65,7 +74,11 @@ const PhotosPage = () => {
     invariant(encryptedArrayBuffer);
     invariant(encryptedFileType);
 
-    const arrayBuffer = await decryptData(key, iv, encryptedArrayBuffer);
+    const arrayBuffer = await decryptData(
+      identity.keys.private.encryption.key,
+      identity.keys.private.encryption.iv,
+      encryptedArrayBuffer
+    );
     const file = arrayBufferToFile(arrayBuffer, encryptedFileType);
     setDecryptedFileUrl(URL.createObjectURL(file));
   };
@@ -102,7 +115,7 @@ const PhotosPage = () => {
             </FileUpload>
             {previewUrls.length > 0 ? (
               <button
-                className="rounded-md bg-primary-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                className="bg-primary-600 hover:bg-primary-500 focus-visible:outline-primary-600 rounded-md px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 onClick={() => saveFile()}
               >
                 Save to API
@@ -133,7 +146,7 @@ const PhotosPage = () => {
                   </div>
                 ) : (
                   <button
-                    className="rounded-md bg-primary-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                    className="bg-primary-600 hover:bg-primary-500 focus-visible:outline-primary-600 rounded-md px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                     onClick={() => onDecryptClick()}
                   >
                     Decrypt

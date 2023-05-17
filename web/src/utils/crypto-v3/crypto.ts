@@ -35,6 +35,19 @@ export const decryptData = (
 ): Promise<ArrayBuffer> =>
   window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encryptedData);
 
+export const createPublicDigestFromKey = async (
+  key: CryptoKey
+): Promise<string> => {
+  const encoder = new TextEncoder();
+  const jwk = await window.crypto.subtle.exportKey('jwk', key);
+  const data = encoder.encode(JSON.stringify(jwk));
+  const digest = await window.crypto.subtle.digest('SHA-256', data);
+
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+};
+
 export const exportIdentity = async (
   key: CryptoKey,
   iv: Uint8Array

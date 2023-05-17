@@ -3,12 +3,14 @@ import type {
   FindFilesInAlbumVariables,
 } from 'types/graphql';
 import type { CellSuccessProps, CellFailureProps } from '@redwoodjs/web';
+import { Album } from 'src/components/Album';
 
 export const QUERY = gql`
   query FindFilesInAlbum($albumId: String!) {
     files(albumId: $albumId) {
       id
       albumId
+      data
     }
   }
 `;
@@ -26,5 +28,5 @@ export const Failure = ({
 export const Success = ({
   files,
 }: CellSuccessProps<FindFilesInAlbum, FindFilesInAlbumVariables>) => {
-  return <div>{JSON.stringify(files)}</div>;
+  return <Album files={files} />;
 };

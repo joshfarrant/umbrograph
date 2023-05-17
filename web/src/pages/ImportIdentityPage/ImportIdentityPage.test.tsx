@@ -1,14 +1,14 @@
 import { render } from '@redwoodjs/testing/web';
 
-import UploadPage from './UploadPage';
+import ImportIdentityPage from './ImportIdentityPage';
 
 //   Improve this test with help from the Redwood Testing Doc:
 //   https://redwoodjs.com/docs/testing#testing-pages-layouts
 
-describe('UploadPage', () => {
+describe('ImportIdentityPage', () => {
   it('renders successfully', () => {
     expect(() => {
-      render(<UploadPage />);
+      render(<ImportIdentityPage />);
     }).not.toThrow();
   });
 });

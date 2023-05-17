@@ -1,14 +1,14 @@
 import { render } from '@redwoodjs/testing/web';
 
-import NewAlbumPage from './NewAlbumPage';
+import GenerateIdentityPage from './GenerateIdentityPage';
 
 //   Improve this test with help from the Redwood Testing Doc:
 //   https://redwoodjs.com/docs/testing#testing-pages-layouts
 
-describe('NewAlbumPage', () => {
+describe('GenerateIdentityPage', () => {
   it('renders successfully', () => {
     expect(() => {
-      render(<NewAlbumPage />);
+      render(<GenerateIdentityPage />);
     }).not.toThrow();
   });
 });

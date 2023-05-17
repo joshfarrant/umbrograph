@@ -1,5 +1,11 @@
 import invariant from 'tiny-invariant';
 
+export const arrayBufferToString = (buffer: ArrayBuffer): string => {
+  const decoder = new TextDecoder();
+  const data = new Uint8Array(buffer);
+  return decoder.decode(data);
+};
+
 export const stringToArrayBuffer = (str: string): ArrayBuffer => {
   const encoder = new TextEncoder();
   const data = encoder.encode(str);

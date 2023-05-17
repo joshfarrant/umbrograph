@@ -9,15 +9,18 @@
 
 import { Set, Router, Route } from '@redwoodjs/router';
 
-import ScaffoldLayout from 'src/layouts/ScaffoldLayout';
 import { AppLayout } from './layouts/AppLayout';
 
 const Routes = () => {
   return (
     <Router>
       <Set wrap={AppLayout}>
-        <Route path="/upload" page={UploadPage} name="upload" />
-        <Route path="/album/{albumId}" page={AlbumPage} name="albums" />
+        <Route path="/albums/new" page={NewAlbumPage} name="upload" />
+        <Route path="/albums/{albumId}" page={AlbumPage} name="album" />
+
+        <Route path="/identity" page={IdentityPage} name="identity" />
+        <Route path="/identity/import" page={ImportIdentityPage} name="importIdentity" />
+        <Route path="/identity/generate" page={GenerateIdentityPage} name="generateIdentity" />
       </Set>
       <Route path="/photos" page={PhotosPage} name="photos" />
       <Route notfound page={NotFoundPage} />

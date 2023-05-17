@@ -1,11 +1,6 @@
 import { Fragment } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
-import {
-  Bars3Icon,
-  BellIcon,
-  XMarkIcon,
-  IdentificationIcon,
-} from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon, KeyIcon } from '@heroicons/react/24/outline';
 import { PlusIcon } from '@heroicons/react/20/solid';
 import clsx from 'clsx';
 import { Link, routes } from '@redwoodjs/router';
@@ -52,12 +47,12 @@ export const NavBar = () => {
                 <div className="flex flex-shrink-0 items-center">
                   <img
                     className="block h-8 w-auto lg:hidden"
-                    src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                    src="https://tailwindui.com/img/logos/mark.svg?color=cyan&shade=500"
                     alt="Your Company"
                   />
                   <img
                     className="hidden h-8 w-auto lg:block"
-                    src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                    src="https://tailwindui.com/img/logos/mark.svg?color=cyan&shade=500"
                     alt="Your Company"
                   />
                 </div>
@@ -83,7 +78,7 @@ export const NavBar = () => {
                 <div className="flex-shrink-0">
                   <Link
                     to={routes.upload()}
-                    className="relative inline-flex items-center gap-x-1.5 rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                    className="relative inline-flex items-center gap-x-1.5 rounded-md bg-primary-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
                   >
                     <PlusIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
                     New Album
@@ -95,7 +90,7 @@ export const NavBar = () => {
                     <div>
                       <Menu.Button className="flex rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                         <span className="sr-only">Open user menu</span>
-                        <IdentificationIcon className="h-8 w-8 rounded-full p-0.5 text-gray-400" />
+                        <KeyIcon className="h-8 w-8 p-0.5 text-gray-400" />
                       </Menu.Button>
                     </div>
                     <Transition
@@ -153,7 +148,7 @@ export const NavBar = () => {
             <div className="border-t border-gray-700 pb-3 pt-4">
               <div className="flex items-center px-5 sm:px-6">
                 <div className="flex-shrink-0">
-                  <IdentificationIcon className="h-10 w-10 rounded-full p-0.5 text-gray-400" />
+                  <KeyIcon className="h-10 w-10 p-0.5 text-gray-400" />
                 </div>
                 <div className="ml-3">
                   <div className="text-base font-medium text-white">

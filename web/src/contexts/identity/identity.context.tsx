@@ -7,10 +7,31 @@ import React, {
 } from 'react';
 import invariant from 'tiny-invariant';
 
-import { generateIv, generateKey, exportIdentity } from 'src/utils/crypto-v3';
+import {
+  generateIv,
+  generateKey,
+  exportIdentity,
+  importIdentity,
+} from 'src/utils/crypto-v3';
 import { TIdentityContext, TIdentityProviderProps } from './identity.types';
 
 const IdentityContext = createContext<TIdentityContext | null>(null);
+
+const storeIdentity = async (stringifiedIdentity: string) => {
+  localStorage.setItem('identity', stringifiedIdentity);
+};
+
+const retrieveIdentity = async () => {
+  const identityString = localStorage.getItem('identity');
+
+  if (!identityString) {
+    return;
+  }
+
+  const jsonIdentity = JSON.parse(identityString);
+  const identity = await importIdentity(jsonIdentity);
+  return identity;
+};
 
 export const IdentityProvider = ({
   children,
@@ -41,12 +62,27 @@ export const IdentityProvider = ({
   };
 
   useEffect(() => {
-    generateIdentity();
+    retrieveIdentity().then((identity) => {
+      if (!identity) {
+        generateIdentity();
+        return;
+      }
+
+      const { key, iv } = identity;
+      setKey(key);
+      setIv(iv);
+    });
   }, []);
 
   useEffect(() => {
     stringifyIdentity();
   }, [key, iv]);
+
+  useEffect(() => {
+    if (stringifiedIdentity) {
+      storeIdentity(stringifiedIdentity);
+    }
+  }, [stringifiedIdentity]);
 
   if (!key || !iv || !stringifiedIdentity) {
     return <span>Generating identity...</span>;
@@ -54,7 +90,14 @@ export const IdentityProvider = ({
 
   return (
     <IdentityContext.Provider
-      value={{ key, setKey, iv, setIv, stringifiedIdentity, generateIdentity }}
+      value={{
+        key,
+        setKey,
+        iv,
+        setIv,
+        stringifiedIdentity,
+        generateIdentity,
+      }}
     >
       {children}
     </IdentityContext.Provider>

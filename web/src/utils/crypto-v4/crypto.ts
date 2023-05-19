@@ -8,30 +8,28 @@ import {
 } from './crypto.optics';
 import { JsonIdentitySchema, TIdentity, TJsonIdentity } from './crypto.types';
 
-const ENCRYPTION_KEY_ALGORITHM: AlgorithmIdentifier = 'AES-GCM';
-const SIGNING_KEY_ALGORITHM: AlgorithmIdentifier = 'RSA-PSS';
+const ENCRYPTION_KEY_ALGORITHM: AesKeyGenParams = {
+  name: 'AES-GCM',
+  length: 256,
+};
+const SIGNING_KEY_ALGORITHM: RsaHashedKeyGenParams = {
+  name: 'RSA-PSS',
+  hash: 'SHA-256',
+  modulusLength: 4096,
+  publicExponent: new Uint8Array([1, 0, 1]),
+};
 
 export const generateEncryptionKey = async (): Promise<CryptoKey> =>
-  window.crypto.subtle.generateKey(
-    {
-      name: ENCRYPTION_KEY_ALGORITHM,
-      length: 256,
-    },
-    true,
-    ['encrypt', 'decrypt']
-  );
+  window.crypto.subtle.generateKey(ENCRYPTION_KEY_ALGORITHM, true, [
+    'encrypt',
+    'decrypt',
+  ]);
 
 const generateSigningKeyPair = (): Promise<CryptoKeyPair> =>
-  window.crypto.subtle.generateKey(
-    {
-      name: SIGNING_KEY_ALGORITHM,
-      hash: 'SHA-256',
-      modulusLength: 4096,
-      publicExponent: new Uint8Array([1, 0, 1]),
-    },
-    true,
-    ['sign', 'verify']
-  );
+  window.crypto.subtle.generateKey(SIGNING_KEY_ALGORITHM, true, [
+    'sign',
+    'verify',
+  ]);
 
 export const generateIv = (): Uint8Array =>
   window.crypto.getRandomValues(new Uint8Array(12));
@@ -43,7 +41,7 @@ export const encryptData = (
 ): Promise<ArrayBuffer> =>
   window.crypto.subtle.encrypt(
     {
-      name: ENCRYPTION_KEY_ALGORITHM,
+      name: ENCRYPTION_KEY_ALGORITHM.name,
       iv,
     },
     key,
@@ -56,7 +54,7 @@ export const decryptData = (
   encryptedData: ArrayBuffer
 ): Promise<ArrayBuffer> =>
   window.crypto.subtle.decrypt(
-    { name: ENCRYPTION_KEY_ALGORITHM, iv },
+    { name: ENCRYPTION_KEY_ALGORITHM.name, iv },
     key,
     encryptedData
   );
@@ -67,7 +65,7 @@ export const signData = (
 ): Promise<ArrayBuffer> =>
   window.crypto.subtle.sign(
     {
-      name: SIGNING_KEY_ALGORITHM,
+      name: SIGNING_KEY_ALGORITHM.name,
       saltLength: 32,
     },
     privateKey,
@@ -81,7 +79,7 @@ export const verifyData = (
 ): Promise<boolean> =>
   window.crypto.subtle.verify(
     {
-      name: SIGNING_KEY_ALGORITHM,
+      name: SIGNING_KEY_ALGORITHM.name,
       saltLength: 32,
     },
     publicKey,
@@ -103,16 +101,23 @@ export const createPublicDigestFromKey = async (
 };
 
 const importKey =
-  (algorithm: AlgorithmIdentifier, keyUsage: KeyUsage[]) =>
+  (algorithm: AesKeyGenParams | RsaHashedImportParams, keyUsage: KeyUsage[]) =>
   (jwk: JsonWebKey): Promise<CryptoKey> =>
     window.crypto.subtle.importKey('jwk', jwk, algorithm, true, keyUsage);
 
-const importEncryptionKey = importKey(ENCRYPTION_KEY_ALGORITHM, [
-  'encrypt',
-  'decrypt',
-]);
-const importPublicSigningKey = importKey(SIGNING_KEY_ALGORITHM, ['verify']);
-const importPrivateSigningKey = importKey(SIGNING_KEY_ALGORITHM, ['sign']);
+// prettier-ignore
+const importEncryptionKey = importKey(
+  ENCRYPTION_KEY_ALGORITHM,
+  ['encrypt', 'decrypt']
+);
+const importPublicSigningKey = importKey(
+  { name: SIGNING_KEY_ALGORITHM.name, hash: SIGNING_KEY_ALGORITHM.hash },
+  ['verify']
+);
+const importPrivateSigningKey = importKey(
+  { name: SIGNING_KEY_ALGORITHM.name, hash: SIGNING_KEY_ALGORITHM.hash },
+  ['sign']
+);
 
 export const importIdentity = async (
   jsonIdentity: TJsonIdentity

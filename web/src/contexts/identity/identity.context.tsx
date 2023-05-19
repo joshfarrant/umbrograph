@@ -38,7 +38,8 @@ const getIdentityFromLocalStorage = async (): Promise<TIdentity | null> => {
     const identity = await importIdentity(jsonIdentity);
 
     return identity;
-  } catch {
+  } catch (error) {
+    console.error('Error getting identity from local storage', error);
     return null;
   }
 };

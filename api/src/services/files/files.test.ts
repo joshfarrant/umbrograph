@@ -22,23 +22,23 @@ describe('files', () => {
     expect(result).toEqual(scenario.file.one);
   });
 
-  scenario('creates a file', async () => {
+  scenario('creates a file', async (scenario: StandardScenario) => {
     const result = await createFile({
-      input: { albumId: 'String', data: 'String' },
+      input: { data: 'String', albumId: scenario.file.two.albumId },
     });
 
-    expect(result.albumId).toEqual('String');
     expect(result.data).toEqual('String');
+    expect(result.albumId).toEqual(scenario.file.two.albumId);
   });
 
   scenario('updates a file', async (scenario: StandardScenario) => {
     const original = (await file({ id: scenario.file.one.id })) as File;
     const result = await updateFile({
       id: original.id,
-      input: { albumId: 'String2' },
+      input: { data: 'String2' },
     });
 
-    expect(result.albumId).toEqual('String2');
+    expect(result.data).toEqual('String2');
   });
 
   scenario('deletes a file', async (scenario: StandardScenario) => {

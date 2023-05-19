@@ -1,23 +1,24 @@
 export const schema = gql`
   type File {
     id: String!
-    albumId: String!
     data: String!
+    albumId: String!
+    Album: Album!
   }
 
   type Query {
-    files(albumId: String!): [File!]! @requireAuth
+    files: [File!]! @requireAuth
     file(id: String!): File @requireAuth
   }
 
   input CreateFileInput {
-    albumId: String!
     data: String!
+    albumId: String!
   }
 
   input UpdateFileInput {
-    albumId: String
     data: String
+    albumId: String
   }
 
   type Mutation {

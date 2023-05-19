@@ -1,9 +1,13 @@
-import type { QueryResolvers, MutationResolvers } from 'types/graphql';
+import type {
+  QueryResolvers,
+  MutationResolvers,
+  FileRelationResolvers,
+} from 'types/graphql';
 
 import { db } from 'src/lib/db';
 
-export const files: QueryResolvers['files'] = ({ albumId }) => {
-  return db.file.findMany({ where: { albumId } });
+export const files: QueryResolvers['files'] = () => {
+  return db.file.findMany();
 };
 
 export const file: QueryResolvers['file'] = ({ id }) => {
@@ -29,4 +33,10 @@ export const deleteFile: MutationResolvers['deleteFile'] = ({ id }) => {
   return db.file.delete({
     where: { id },
   });
+};
+
+export const File: FileRelationResolvers = {
+  Album: (_obj, { root }) => {
+    return db.file.findUnique({ where: { id: root?.id } }).Album();
+  },
 };

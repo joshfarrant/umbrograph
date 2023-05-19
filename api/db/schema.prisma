@@ -8,8 +8,16 @@ generator client {
   binaryTargets = "native"
 }
 
+model Album {
+  id    String  @id @default(uuid())
+  owner String
+  title String?
+  files File[]
+}
+
 model File {
   id      String @id @default(uuid())
-  albumId String
   data    String
+  albumId String
+  Album   Album  @relation(fields: [albumId], references: [id])
 }

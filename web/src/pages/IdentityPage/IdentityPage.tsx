@@ -16,10 +16,7 @@ import { MetaTags } from '@redwoodjs/web';
 import { JsonDownloadLink } from 'src/components/atoms/json-download-link';
 import { useIdentity } from 'src/contexts/identity';
 import { useAsyncState } from 'src/hooks/use-async-state';
-import {
-  createPublicDigestFromKey,
-  getPublicSigningKey,
-} from 'src/utils/crypto-v4';
+import { getPublicSigningKey, stringifyRsaKey } from 'src/utils/crypto-v4';
 
 type TFaqProps = {
   question: string;
@@ -104,7 +101,7 @@ const IdentityPage = () => {
   const { identity, stringifiedIdentity } = useIdentity();
 
   const [digest] = useAsyncState(() =>
-    createPublicDigestFromKey(getPublicSigningKey(identity))
+    stringifyRsaKey(getPublicSigningKey(identity))
   );
 
   return (

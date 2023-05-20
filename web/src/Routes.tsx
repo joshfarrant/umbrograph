@@ -22,7 +22,6 @@ const Routes = () => {
         <Route path="/identity/import" page={ImportIdentityPage} name="importIdentity" />
         <Route path="/identity/generate" page={GenerateIdentityPage} name="generateIdentity" />
       </Set>
-      <Route path="/photos" page={PhotosPage} name="photos" />
       <Route notfound page={NotFoundPage} />
     </Router>
   );

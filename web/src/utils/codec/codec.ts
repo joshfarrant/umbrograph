@@ -73,3 +73,7 @@ export const base64ToPreviewUrl = async (
 
   return previewUrl;
 };
+
+export const base64ToString = (base64String: string): string => {
+  return Buffer.from(base64String, 'base64').toString('utf-8');
+};

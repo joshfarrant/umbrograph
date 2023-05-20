@@ -87,17 +87,9 @@ export const verifyData = (
     encodedData
   );
 
-export const createPublicDigestFromKey = async (
-  key: CryptoKey
-): Promise<string> => {
-  const encoder = new TextEncoder();
-  const jwk = await window.crypto.subtle.exportKey('jwk', key);
-  const data = encoder.encode(JSON.stringify(jwk));
-  const digest = await window.crypto.subtle.digest('SHA-256', data);
-
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+export const stringifyRsaKey = async (key: CryptoKey): Promise<string> => {
+  const jwk = await exportKey(key);
+  return btoa(JSON.stringify(jwk));
 };
 
 const importKey =

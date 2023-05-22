@@ -1,6 +1,5 @@
 import { useState } from 'react';
 
-import { FolderIcon } from '@heroicons/react/20/solid';
 import { v4 as uuidv4 } from 'uuid';
 
 import { navigate, routes } from '@redwoodjs/router';
@@ -9,7 +8,6 @@ import { toast } from '@redwoodjs/web/toast';
 
 import { FileUpload } from 'src/components/atoms/file-upload';
 import { useIdentity } from 'src/contexts/identity';
-import { useConst } from 'src/hooks/use-const';
 import {
   arrayBufferToBase64,
   fileToArrayBuffer,
@@ -19,6 +17,8 @@ import {
   encryptData,
   getPrivateEncryptionIv,
   getPrivateEncryptionKey,
+  getPublicSigningKey,
+  stringifyRsaKey,
 } from 'src/utils/crypto-v4';
 
 type TFileMeta = {
@@ -31,6 +31,17 @@ const CREATE_FILE_MUTATION = gql`
   mutation CreateFileMutation($input: CreateFileInput!) {
     createFile(input: $input) {
       id
+      albumId
+    }
+  }
+`;
+
+const CREATE_ALBUM_MUTATION = gql`
+  mutation CreateAlbumMutation($input: CreateAlbumInput!) {
+    createAlbum(input: $input) {
+      id
+      owner
+      title
     }
   }
 `;
@@ -40,11 +51,19 @@ const NewAlbumPage = () => {
 
   const [files, setFiles] = useState<TFileMeta[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-  const [albumId, setAlbumId] = useState(() => uuidv4());
 
-  const [createFile, { loading, error }] = useMutation(CREATE_FILE_MUTATION, {
+  const [createFile] = useMutation(CREATE_FILE_MUTATION, {
     onCompleted: () => {
       toast.success('File created');
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const [createAlbum] = useMutation(CREATE_ALBUM_MUTATION, {
+    onCompleted: () => {
+      toast.success('Album created');
     },
     onError: (error) => {
       toast.error(error.message);
@@ -71,6 +90,19 @@ const NewAlbumPage = () => {
   };
 
   const uploadSelectedFiles = async () => {
+    const owner = await stringifyRsaKey(getPublicSigningKey(identity));
+
+    const res = await createAlbum({
+      variables: { input: { owner, title: 'Test album' } },
+    });
+
+    const albumId = res.data?.createAlbum.id;
+
+    if (!albumId) {
+      // TODO handle errors
+      return;
+    }
+
     const encryptedFilesPromises = files.map(async ({ file, name, type }) => {
       const fileArrayBuffer = await fileToArrayBuffer(file);
 
@@ -96,7 +128,6 @@ const NewAlbumPage = () => {
       const encryptedData = arrayBufferToBase64(encryptedDataArrayBuffer);
 
       return {
-        albumId,
         data: encryptedData,
       };
     });
@@ -121,23 +152,6 @@ const NewAlbumPage = () => {
             <h1 className="text-3xl font-bold leading-tight tracking-tight text-gray-900">
               New Album
             </h1>
-            <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
-              <div className="mt-2 flex items-center text-sm text-gray-500">
-                <FolderIcon
-                  className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
-                  aria-hidden="true"
-                />
-                <span className="font-mono">{albumId}</span>
-                <button
-                  className="hover:text-primary-500 ml-2 underline"
-                  onClick={() => {
-                    setAlbumId(uuidv4());
-                  }}
-                >
-                  Regenerate
-                </button>
-              </div>
-            </div>
           </div>
         </header>
         <main>

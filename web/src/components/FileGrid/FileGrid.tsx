@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
+import invariant from 'tiny-invariant';
 import type { File as TFile } from 'types/graphql';
 
 import { useIdentity } from 'src/contexts/identity';
@@ -18,13 +19,16 @@ type TFileProps = {
   data: TFile['data'];
 };
 
-const FileItem = ({ id, albumId, data }: TFileProps) => {
+const FileItem = ({ data }: TFileProps) => {
   const { identity } = useIdentity();
   const [name, setName] = useState<string | null>(null);
   const [imgSrc, setImgSrc] = useState<string | null>(null);
   const [type, setType] = useState<string | null>(null);
+  const [decryptionFailed, setDecryptionFailed] = useState(false);
 
-  const decryptFile = async () => {
+  const decryptFile = useCallback(async () => {
+    invariant(identity);
+
     const encryptedArrayBuffer = base64ToArrayBuffer(data);
     const decryptedArrayBuffer = await decryptData(
       getPrivateEncryptionKey(identity),
@@ -39,13 +43,19 @@ const FileItem = ({ id, albumId, data }: TFileProps) => {
     setImgSrc(imgSrc);
     setName(name);
     setType(type);
-  };
+  }, [data, identity]);
 
   useEffect(() => {
     if (data) {
-      decryptFile();
+      decryptFile().catch(() => {
+        setDecryptionFailed(true);
+      });
     }
-  }, [data]);
+  }, [data, decryptFile]);
+
+  if (decryptionFailed) {
+    return <span>Decryption failed</span>;
+  }
 
   if (!imgSrc) {
     return <span>Loading...</span>;
@@ -74,10 +84,7 @@ const FileItem = ({ id, albumId, data }: TFileProps) => {
 
 export const FileGrid = ({ files }: TFileGridProps) => {
   return (
-    <ul
-      role="list"
-      className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8"
-    >
+    <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8">
       {files.map(({ id, albumId, data }) => (
         <FileItem key={id} id={id} albumId={albumId} data={data} />
       ))}

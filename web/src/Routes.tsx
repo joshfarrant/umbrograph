@@ -16,7 +16,7 @@ const Routes = () => {
     <Router>
       <Set wrap={AppLayout}>
         <Route path="/albums/new" page={NewAlbumPage} name="upload" />
-        <Route path="/albums/{albumId}" page={AlbumPage} name="album" />
+        <Route path="/albums/{id}" page={AlbumPage} name="album" />
 
         <Route path="/identity" page={IdentityPage} name="identity" />
         <Route path="/identity/import" page={ImportIdentityPage} name="importIdentity" />

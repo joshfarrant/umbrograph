@@ -8,12 +8,15 @@ import React, {
 
 import invariant from 'tiny-invariant';
 
+import { useAsyncState } from 'src/hooks/use-async-state';
 import {
   generateIdentity,
   exportIdentity,
   importIdentity,
   type TIdentity,
   JsonIdentitySchema,
+  stringifyRsaKey,
+  getPublicSigningKey,
 } from 'src/utils/crypto-v4';
 
 import { TIdentityContext, TIdentityProviderProps } from './identity.types';
@@ -51,10 +54,16 @@ export const IdentityProvider = ({
   const [stringifiedIdentity, setStringifiedIdentity] = useState<string | null>(
     null
   );
+  const [digest] = useAsyncState<string | null>(() =>
+    identity
+      ? stringifyRsaKey(getPublicSigningKey(identity))
+      : Promise.resolve(null)
+  );
 
   const generateAndSetIdentity = async () => {
     const newIdentity = await generateIdentity();
     setIdentity(newIdentity);
+    return newIdentity;
   };
 
   useEffect(() => {
@@ -82,6 +91,7 @@ export const IdentityProvider = ({
   useEffect(() => {
     const stringifyIdentity = async () => {
       if (!identity) {
+        setStringifiedIdentity(null);
         return;
       }
 
@@ -100,9 +110,7 @@ export const IdentityProvider = ({
     }
   }, [stringifiedIdentity]);
 
-  if (!identity || !stringifiedIdentity) {
-    return <span>Initialising identity...</span>;
-  }
+  const shortDigest = digest ? digest.replace(/=+$/, '').slice(-24) : null;
 
   return (
     <IdentityContext.Provider
@@ -111,6 +119,7 @@ export const IdentityProvider = ({
         setIdentity,
         stringifiedIdentity,
         generateIdentity: generateAndSetIdentity,
+        digest: shortDigest,
       }}
     >
       {children}

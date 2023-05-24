@@ -9,6 +9,7 @@ import {
   TrashIcon,
 } from '@heroicons/react/20/solid';
 import clsx from 'clsx';
+import invariant from 'tiny-invariant';
 
 import { Link } from '@redwoodjs/router';
 import { MetaTags } from '@redwoodjs/web';
@@ -16,7 +17,12 @@ import { MetaTags } from '@redwoodjs/web';
 import { JsonDownloadLink } from 'src/components/atoms/json-download-link';
 import { useIdentity } from 'src/contexts/identity';
 import { useAsyncState } from 'src/hooks/use-async-state';
-import { getPublicSigningKey, stringifyRsaKey } from 'src/utils/crypto-v4';
+import { getFileContents } from 'src/utils/codec';
+import {
+  getPublicSigningKey,
+  importIdentity,
+  stringifyRsaKey,
+} from 'src/utils/crypto-v4';
 
 type TFaqProps = {
   question: string;
@@ -98,11 +104,8 @@ const SecretText = ({ className, children }: TSecretTextProps) => {
 };
 
 const IdentityPage = () => {
-  const { identity, stringifiedIdentity } = useIdentity();
-
-  const [digest] = useAsyncState(() =>
-    stringifyRsaKey(getPublicSigningKey(identity))
-  );
+  const { digest, generateIdentity, setIdentity, stringifiedIdentity } =
+    useIdentity();
 
   return (
     <>
@@ -115,23 +118,24 @@ const IdentityPage = () => {
               Your Identity
             </h2>
             <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
-              {digest ? (
-                <div className="mt-2 flex items-center font-mono text-sm text-gray-500">
-                  <KeyIcon
-                    className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
-                    aria-hidden="true"
-                  />
-                  <span className="truncate overflow-ellipsis">
-                    {digest.substring(0, 24)}
-                  </span>
-                </div>
-              ) : null}
+              <div className="mt-2 flex items-center font-mono text-sm text-gray-500">
+                <KeyIcon
+                  className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
+                  aria-hidden="true"
+                />
+                <span className="truncate overflow-ellipsis">
+                  {digest || 'Identity not set'}
+                </span>
+              </div>
             </div>
           </div>
           <div className="mt-5 flex flex-row flex-wrap gap-3">
             <button
               type="button"
               className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              onClick={() => {
+                setIdentity(null);
+              }}
             >
               <TrashIcon
                 className="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400"
@@ -143,35 +147,78 @@ const IdentityPage = () => {
             <button
               type="button"
               className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              onClick={() => {
+                generateIdentity();
+              }}
             >
               <ArrowPathIcon
                 className="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400"
                 aria-hidden="true"
               />
-              Create New Identity
+              {stringifiedIdentity ? 'Regenerate' : 'Generate'} Identity
             </button>
-            <button
-              type="button"
-              className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+
+            <label
+              className="cursor-pointer inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              htmlFor="upload-identity"
             >
               <ArrowUpTrayIcon
                 className="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400"
                 aria-hidden="true"
               />
               Upload Identity
-            </button>
+            </label>
+            <input
+              type="file"
+              id="upload-identity"
+              className="hidden"
+              onChange={async (e) => {
+                const { files } = e.target;
 
-            <JsonDownloadLink
-              className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              json={stringifiedIdentity}
-              filename="identity.json"
-            >
-              <ArrowDownTrayIcon
-                className="-ml-0.5 mr-1.5 h-5 w-5"
-                aria-hidden="true"
-              />
-              Download Identity
-            </JsonDownloadLink>
+                const identityFile = files?.[0];
+
+                invariant(identityFile);
+
+                const identityString = await getFileContents(identityFile);
+
+                const identityObject = await JSON.parse(identityString);
+
+                const importedIdentity = await importIdentity(identityObject);
+
+                setIdentity(importedIdentity);
+
+                /**
+                 * TODO Add some error handling here to handle failed imports.
+                 * Maybe pop up a toast or something
+                 */
+
+                e.target.value = '';
+              }}
+            />
+            {stringifiedIdentity ? (
+              <JsonDownloadLink
+                className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                json={stringifiedIdentity}
+                filename="identity.json"
+              >
+                <ArrowDownTrayIcon
+                  className="-ml-0.5 mr-1.5 h-5 w-5"
+                  aria-hidden="true"
+                />
+                Download Identity
+              </JsonDownloadLink>
+            ) : (
+              <button
+                className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                disabled
+              >
+                <ArrowDownTrayIcon
+                  className="-ml-0.5 mr-1.5 h-5 w-5"
+                  aria-hidden="true"
+                />
+                Download Identity
+              </button>
+            )}
           </div>
         </div>
       </header>

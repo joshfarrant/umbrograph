@@ -46,6 +46,20 @@ export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
   return bytes.buffer;
 };
 
+export const getFileContents = async (file: File): Promise<string> => {
+  const reader = new FileReader();
+
+  return new Promise((resolve) => {
+    reader.addEventListener('load', () => {
+      invariant(typeof reader.result === 'string');
+
+      resolve(reader.result);
+    });
+
+    reader.readAsText(file);
+  });
+};
+
 export const fileToPreviewUrl = (file: File): Promise<string> => {
   const reader = new FileReader();
   reader.readAsDataURL(file);

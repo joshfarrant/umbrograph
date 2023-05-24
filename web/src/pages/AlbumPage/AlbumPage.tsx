@@ -1,11 +1,11 @@
 import AlbumCell from 'src/components/AlbumCell';
 
 type AlbumPageProps = {
-  albumId: string;
+  id: string;
 };
 
-const AlbumPage = ({ albumId }: AlbumPageProps) => {
-  return <AlbumCell albumId={albumId} />;
+const AlbumPage = ({ id }: AlbumPageProps) => {
+  return <AlbumCell id={id} />;
 };
 
 export default AlbumPage;
